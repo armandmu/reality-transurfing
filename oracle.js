@@ -61,6 +61,7 @@ window.oracleComplete=function(idx){let c=CARDS[idx];mutate(o=>{if(!o.completed.
 window.oracleFilter=function(q){let el=document.getElementById('oracle-filter');let start=el?.selectionStart??q.length;document.getElementById('root').innerHTML=library(q)+orNav();el=document.getElementById('oracle-filter');el?.focus();el?.setSelectionRange(start,start)};
 const baseRender=render;
 render=function(){if(view==='oraculo'){display();return}baseRender();const root=document.getElementById('root');const tabs=root.querySelector('nav.tabs');if(tabs){let b=document.createElement('button');b.className='tab';b.textContent='✧ Oráculo';b.onclick=()=>oracleOpen('inicio');tabs.appendChild(b)}if(view==='inicio'){const section=document.createElement('div');section.className='oracle-board';section.innerHTML='<div class="oracle-tag">Novedad · Oráculo de las Variantes</div><h2>78 cartas para la práctica diaria</h2><p class="oracle-text">Carta del día, consultas guiadas y un recorrido completo de 78 jornadas. Una herramienta complementaria a las lecciones de la Academia.</p><button class="btn primary" onclick="oracleOpen(\'inicio\')">Entrar en el Oráculo ✧</button>';let first=root.querySelector('.panel');if(first)first.insertAdjacentElement('afterend',section)}};
+window.rtOracleCards=CARDS;
 window.academyCardTitles=Object.fromEntries(CARDS.map(c=>[c.id,c.title]));
 render();
 })();
