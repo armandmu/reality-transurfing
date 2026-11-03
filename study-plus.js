@@ -17,10 +17,23 @@ function matches(p,title){
  const a=norm(title),b=norm(p.key);
  return a===b||a.includes(b)||(b.includes(a)&&a.length>8);
 }
+const PROTOCOL_ALIASES={
+ 'paso de intención':['Paso de la intención'],
+ 'freiling':['Freile','Intención de las relaciones'],
+ 'diapositiva del objetivo':['Visualización del objetivo','Diapositivas positivas'],
+ 'flujo de energía':['Incrementar tu energía','Energía libre e intención'],
+ 'marco':['Frame','Marco de intención'],
+ 'reducir la importancia':['Detector de importancia','Coordinación de la importancia'],
+ 'relaciones de dependencia':['Soltar la dependencia','Juego de las parejas'],
+ 'puertas':['Tus puertas'],
+ 'celador':['El Celador: vuelve a despertar','Hábito de estar despierto'],
+ 'onda de la suerte':['Encuentra la ola','Registrar señales favorables']
+};
 function protocol(item){
  const title=norm(item.title);
  let p=P.find(p=>norm(p.key)===title);
  if(!p)p=P.filter(p=>norm(p.key).length>=8&&title.includes(norm(p.key))).sort((a,b)=>b.key.length-a.key.length)[0];
+ if(!p)p=P.find(p=>(PROTOCOL_ALIASES[p.key]||[]).some(t=>norm(t)===title));
  const topic=item.how?.[0]||'Escribe un acto pequeño que puedas comprobar.';
  if(p)return {...p,type:'Técnica o concepto del libro · adaptación guiada'};
  const base=item.vol===1?'Ejercicio complementario basado en el volumen I':item.vol===2?'Práctica didáctica basada en el volumen II':'Práctica complementaria de este apartado';
@@ -35,6 +48,26 @@ function protocol(item){
 function history(){if(Array.isArray(state.rtHistory))return state.rtHistory;try{let v=JSON.parse(localStorage.getItem(KEY)||'[]');if(!Array.isArray(v))v=[];if(v.length){state.rtHistory=v;persist()}return v}catch(e){return []}}
 function entryList(id){return history().filter(e=>e.id===id).sort((a,b)=>b.timestamp-a.timestamp)}
 function store(entry){let a=history();a.unshift(entry);state.rtHistory=a;persist();localStorage.setItem(KEY,JSON.stringify(a))}
+function isComplete(item){
+ if(!item)return false;
+ if(item.vol===1)return Array.isArray(state.done)&&state.done.includes(item.id.replace(/^v1-/,''));
+ if(item.vol===2)return Array.isArray(state.v2Done)&&state.v2Done.includes(item.id.replace(/^v2-/,''));
+ return Array.isArray(state.extraCompleted)&&state.extraCompleted.includes(item.id);
+}
+function setComplete(item,completed){
+ if(!item)return;
+ const prop=item.vol===1?'done':item.vol===2?'v2Done':'extraCompleted';
+ const id=item.vol===1?item.id.replace(/^v1-/,''):item.vol===2?item.id.replace(/^v2-/,''):item.id;
+ let current=Array.isArray(state[prop])?state[prop]:[];
+ state[prop]=completed?[...new Set([...current,id])]:current.filter(x=>x!==id);
+ persist();
+}
+window.rtToggleComplete=function(){
+ const item=items().find(i=>i.id===current);if(!item)return;
+ const next=!isComplete(item);setComplete(item,next);
+ const b=document.getElementById('rt-complete-btn');if(b){b.textContent=next?'✓ Completada · Desmarcar':'Marcar como completada ✓';b.setAttribute('aria-pressed',String(next))}
+ const msg=document.getElementById('rt-msg');if(msg)msg.textContent=next?'Práctica marcada como completada. El progreso de tu volumen ya está actualizado.':'Se ha desmarcado la práctica sin borrar tus sesiones.';
+};
 function progressBar(n,t){return '<div class="rt-meter"><span>'+n+' de '+t+' pasos</span><div class="bar"><div class="fill" style="width:'+(t?Math.round(n/t*100):0)+'%"></div></div></div>'}
 function recordPanel(id){
  const rows=entryList(id),latest=rows.slice(0,2),count=rows.length;
@@ -84,7 +117,7 @@ function detail(id){
  '<div id="rt-step-progress">'+progressBar(0,p.steps.length)+'</div><div class="rt-warning"><b>Qué evitar</b><p>'+esc(p.caution)+'</p></div></section>'+
  '<section class="rt-panel"><div class="rt-tag">DIARIO Y SEGUIMIENTO</div><h2>Tu sesión de hoy</h2><p class="rt-note">Puedes repetir esta práctica tantas veces como necesites y comparar lo que anotas en días distintos.</p>'+
  [['situation','¿Qué situación concreta has elegido?'],['observation','¿Qué has observado al practicar?'],['action','¿Qué acción realizarás en las próximas 24 horas?'],['review','¿Qué resultado has podido comprobar? (opcional)']].map(x=>'<div class="rt-field"><label for="rt-'+x[0]+'">'+x[1]+'</label><textarea id="rt-'+x[0]+'" rows="3"></textarea></div>').join('')+
- '<p id="rt-msg" class="rt-note"></p><button class="btn primary" onclick="rtSave()">Guardar esta sesión</button> <button class="btn" onclick="rtClearSteps()">Reiniciar pasos</button></section>'+
+ '<p id="rt-msg" class="rt-note"></p><div class="stack"><button class="btn primary" onclick="rtSave()">Guardar esta sesión</button><button class="btn" id="rt-complete-btn" aria-pressed="'+String(isComplete(item))+'" onclick="rtToggleComplete()">'+(isComplete(item)?'✓ Completada · Desmarcar':'Marcar como completada ✓')+'</button><button class="btn" onclick="rtClearSteps()">Reiniciar pasos</button></div></section>'+
  '<div id="rt-history">'+recordPanel(item.id)+'</div>'+
  related(item);
  first.insertAdjacentElement('afterend',section);
@@ -104,6 +137,11 @@ window.rtSave=function(){
  if(!Object.values(values).some(Boolean)){document.getElementById('rt-msg').textContent='Escribe al menos una respuesta para guardar esta sesión.';return}
  const entry={...values,id,vol:item.vol,title:item.title,timestamp:Date.now(),date:new Date().toLocaleString('es-ES')};
  store(entry);
+ const checked=[...document.querySelectorAll('[data-rt-step]')];
+ if(checked.length&&checked.every(x=>x.checked)){
+   setComplete(item,true);
+   const button=document.getElementById('rt-complete-btn');if(button){button.textContent='✓ Completada · Desmarcar';button.setAttribute('aria-pressed','true')}
+ }
  if(Array.isArray(state.entries)){state.entries.unshift({id,title:'Volumen '+item.vol+' · '+item.title,date:entry.date,text:'Situación: '+values.situation+'\n\nObservación: '+values.observation+'\n\nAcción: '+values.action+'\n\nRevisión: '+values.review});persist()}
  document.getElementById('rt-msg').textContent='Sesión guardada. Puedes volver mañana para registrar otra y comparar.';
  for(const k of ['situation','observation','action','review'])document.getElementById('rt-'+k).value='';
@@ -139,7 +177,7 @@ window.v2Open=function(mode,c,l){oldV2(mode,c,l);decorate();if(mode==='leccion'&
 const oldVol=window.openVol;
 window.openVol=function(n,p,c,l){oldVol(n,p,c,l);decorate();if(p==='lesson')detail('v'+n+'-'+c+'-'+l)};
 const GUIDE_FALLBACK={
-  3:['hacedor','elección'],13:['singularidad','alma'],14:['amor propio','singularidad'],15:['cuidado','objetivo'],16:['confianza','fe'],17:['culpa'],29:['amalgama','espejo dual'],31:['péndulos','reacción'],44:['puertas'],49:['corriente de las variantes'],56:['descontento','insatisfacción'],60:['susurro','intuición'],66:['apoyo','relaciones'],68:['alma','funda'],73:['alma y mente','mente'],75:['dinero'],77:['relaciones','freiling'],78:['credo','guardián']
+  3:['hacedor','elección'],13:['singularidad','alma'],14:['amor propio','singularidad'],15:['cuidado','objetivo'],16:['confianza','fe'],17:['culpa'],29:['amalgama','espejo dual'],31:['péndulos','reacción'],44:['puertas'],49:['corriente de las variantes'],56:['descontento','insatisfacción','reprobación','deformación de la realidad','rechazo'],60:['susurro','intuición'],66:['apoyo','relaciones'],68:['alma','funda'],73:['alma y mente','mente'],75:['dinero'],77:['relaciones','freiling'],78:['credo','guardián']
 };
 function oracleMap(n){
  const root=document.getElementById('root');
@@ -161,6 +199,8 @@ function oracleMap(n){
 const oldOracle=window.oracleOpen;
 window.oracleOpen=function(mode,idx){oldOracle(mode,idx);decorate();if(mode==='carta'&&Number.isInteger(idx))oracleMap(idx+1)};
 const st=document.createElement('style');st.textContent=`
+
+.rt-completion-label{font-weight:600;color:#c9f27e}
 .rt-panel{margin:24px 0;padding:25px;border:1px solid #405666;background:linear-gradient(145deg,#1c2b39,#15202d);border-radius:18px}
 .rt-enhanced>.rt-panel:first-child{margin-top:26px}
 .rt-tag{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#c9f27e;font-weight:700;margin-bottom:12px}
