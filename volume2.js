@@ -22,7 +22,42 @@ window.v2Search=function(q){search=q;const pos=document.getElementById('v2-searc
 window.v2Complete=function(){const l=V2[chapter].lessons[lesson];let done=getDone();if(done.includes(l.id))state.v2Done=done.filter(x=>x!==l.id);else state.v2Done=[...done,l.id];persist();viewV2()};
 window.v2Save=function(){const l=V2[chapter].lessons[lesson];const vals=['situation','insight','action','review'].map(x=>document.getElementById('v2-'+x)?.value.trim()||'');if(!vals.some(Boolean)){document.getElementById('v2-feedback').textContent='Escribe al menos una respuesta para guardarla.';return}state.entries.unshift({id:l.id,title:'Volumen II · '+l.name,date:new Date().toLocaleString('es-ES'),fields:{situacion:vals[0],observacion:vals[1],accion:vals[2],revision:vals[3]},text:['Situación','Observación','Acción para 24 horas','Revisión'].map((t,i)=>vals[i]?t+': '+vals[i]:'').filter(Boolean).join('\n\n')});persist();document.getElementById('v2-feedback').textContent='Guardado en tu diario. Puedes marcar la práctica como realizada.'};
 function injectTab(){let tabs=document.querySelector('#root nav.tabs');if(tabs&&!tabs.querySelector('.v2-tab')){let b=document.createElement('button');b.className='tab v2-tab';b.textContent='Volumen II';b.onclick=()=>v2Open('inicio');tabs.insertBefore(b,tabs.children[1]||null)}}
-function injectHome(){const root=document.getElementById('root');if(view!=='inicio'||root.querySelector('.v2-promo'))return;const section=document.createElement('section');section.className='v2-panel v2-promo';section.innerHTML=`<div class="v2-label">Tu siguiente nivel · Volumen II</div><h2>El susurro de las estrellas de madrugada</h2><p class="muted">35 lecciones y prácticas sobre intención, diapositivas, alma y mente, objetivos y puertas. Con cartas relacionadas del Oráculo.</p><button class="btn primary" onclick="v2Open('inicio')">Explorar volumen II →</button>`;const main=root.querySelector('.oracle-board')||root.querySelector('.panel');if(main)main.insertAdjacentElement('afterend',section);else root.prepend(section)}
+function injectHome(){
+  if(view!=='inicio')return;
+  const root=document.getElementById('root');
+  if(!root || root.querySelector('.academy-landing'))return;
+  const done1=Array.isArray(state.done)?state.done.length:0;
+  const done2=getDone().length;
+  const total=40+lessonCount;
+  const overall=done1+done2;
+  const percent=Math.round(overall/total*100);
+  const resume1=D.practices.findIndex(p=>!state.done.includes(p.id));
+  const resume2=V2.findIndex(ch=>ch.lessons.some(l=>!getDone().includes(l.id)));
+  const v1Button=resume1>=0
+    ? '<button class="btn primary" onclick="app(\'practica\','+resume1+')">Continuar vol. I →</button>'
+    : '<button class="btn primary" onclick="app(\'capitulo\',0)">Repasar volumen I →</button>';
+  const v2Button='<button class="btn primary" onclick="v2Open(\'inicio\')">Explorar volumen II →</button>';
+  const html=
+    '<div class="academy-landing">'+
+    '<div class="eyebrow">Tu academia · Reality Transurfing</div>'+
+    '<h1>Estudia. Practica.<br>Elige tu camino.</h1>'+
+    '<p class="lead">Dos volúmenes de aprendizaje y un oráculo de 78 cartas conectados en un mismo cuaderno. Elige por dónde empezar, practica a tu ritmo y conserva tus reflexiones.</p>'+
+    '<div class="academy-progress"><div class="academy-progress-top"><div><div class="label">Tu recorrido global</div><div class="stat">'+overall+' <small>/ '+total+' prácticas</small></div></div><div><div class="label">Completado</div><div class="stat">'+percent+'%</div></div><button class="btn" onclick="app(\'diario\')">Ver mi diario ↗</button></div><div class="bar"><div class="fill" style="width:'+percent+'%"></div></div></div>'+
+    '<div class="academy-label-row"><h2>Academia · Elige tu volumen</h2><span class="count">Aprendizaje a tu ritmo</span></div>'+
+    '<div class="academy-courses">'+
+      '<section class="academy-course"><div class="number">VOLUMEN 01 · 6 CAPÍTULOS</div><h2>El espacio de las variantes</h2><p class="muted">Los fundamentos: variantes, péndulos, ola de la suerte, equilibrio y corriente de las variantes.</p><div class="academy-course-bottom"><div class="academy-meter"><span>'+done1+' / 40 prácticas</span><div class="bar"><div class="fill" style="width:'+Math.round(done1/40*100)+'%"></div></div></div>'+v1Button+'</div><button class="academy-subtle" onclick="app(\'capitulo\',0)">Explorar los seis capítulos ↗</button></section>'+
+      '<section class="academy-course"><div class="number">VOLUMEN 02 · 4 CAPÍTULOS</div><h2>El susurro de las estrellas de madrugada</h2><p class="muted">Intención, diapositivas, la unión entre alma y mente, objetivos personales y puertas.</p><div class="academy-course-bottom"><div class="academy-meter"><span>'+done2+' / '+lessonCount+' lecciones</span><div class="bar"><div class="fill" style="width:'+Math.round(done2/lessonCount*100)+'%"></div></div></div>'+v2Button+'</div><button class="academy-subtle" onclick="v2Open(\'capitulo\',0)">Explorar los cuatro capítulos ↗</button></section>'+
+    '</div>'+
+    '<section class="academy-oracle"><div><div class="number">ORÁCULO · 78 CARTAS</div><h2>Las Variantes, en tu día a día.</h2><p class="muted">Consulta la carta del día, realiza una tirada o empieza el camino de 78 jornadas. Desde cada carta podrás volver a su teoría.</p><div class="stack"><button class="btn primary" onclick="oracleOpen(\'inicio\')">Entrar en el Oráculo ✧</button><button class="btn" onclick="oracleOpen(\'consulta\')">Hacer una consulta</button></div></div><div class="academy-glyph" aria-hidden="true">✧</div></section>'+
+    '<section class="academy-process"><h2>Cómo funciona tu Academia</h2><div class="journey"><div><b>01 · Aprende</b><span>Comprende la idea en su lección.</span></div><div><b>02 · Reconoce</b><span>Busca un ejemplo de tu vida.</span></div><div><b>03 · Practica</b><span>Sigue los ejercicios guiados.</span></div><div><b>04 · Integra</b><span>Elige una acción para 24 horas.</span></div><div><b>05 · Revisa</b><span>Guarda qué ha sucedido.</span></div></div></section>'+
+    '<div class="academy-disclaimer"><h3>Acerca del método</h3><p>Las ideas metafísicas de Zeland se presentan como parte de su propuesta, no como hechos científicamente demostrados. Las lecciones y las prácticas son adaptaciones originales para la reflexión personal.</p></div>'+
+    '<nav class="tabs academy-tabs"><button class="tab active" onclick="app(\'inicio\')">Inicio</button><button class="tab" onclick="app(\'capitulo\',0)">Volumen I</button><button class="tab" onclick="v2Open(\'inicio\')">Volumen II</button><button class="tab" onclick="app(\'biblioteca\')">Prácticas</button><button class="tab" onclick="app(\'favoritos\')">Favoritas</button><button class="tab" onclick="app(\'diario\')">Diario</button><button class="tab" onclick="oracleOpen(\'inicio\')">✧ Oráculo</button></nav>'+
+    '<footer class="note">Academia Reality Transurfing · Volúmenes I y II · Oráculo de las Variantes · Cuaderno de estudio independiente.</footer>'+
+    '</div>';
+  root.innerHTML=html;
+  const subtitle=document.querySelector('header .sub');
+  if(subtitle)subtitle.textContent='ACADEMIA · VOLÚMENES I Y II · ORÁCULO';
+}
 window.v2DecorateOracle=function(){injectTab()};
 const oldRender=render;
 render=function(){if(view==='volumen2'){viewV2();return}oldRender();injectTab();injectHome()};
@@ -32,6 +67,33 @@ const reverse={};V2.forEach((c,ci)=>c.lessons.forEach((l,li)=>l.cards.forEach(id
 window.v2ConnectCard=function(id){const root=document.getElementById('root'),list=reverse[id]||[];if(!list.length||!root||root.querySelector('.v2-oracle-related'))return;const sec=document.createElement('section');sec.className='v2-panel v2-oracle-related';sec.innerHTML=`<div class="v2-label">Conecta esta carta con las lecciones</div><h3>Aprende el principio y practícalo en la Academia</h3><div class="v2-links">${list.slice(0,8).map(o=>`<button class="v2-oracle-link" onclick="v2Open('leccion',${o.ci},${o.li})"><span>${E(o.name)}</span><span>Vol. II · ${E(o.chapter)} →</span></button>`).join('')}</div>`;const nav=root.querySelector('nav.tabs');if(nav)nav.before(sec);else root.append(sec)};
 const st=document.createElement('style');st.textContent=`
 .v2-panel{background:linear-gradient(145deg,#202d3b,#141e2b);border:1px solid #3a5061;border-radius:19px;padding:24px;margin:20px 0 27px}.v2-label{font-size:11px;color:#c9f27e;text-transform:uppercase;letter-spacing:1.8px;font-weight:700;margin-bottom:12px}.v2-stats{display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap;margin-bottom:18px}.v2-stats>div{display:flex;flex-direction:column;gap:5px}.v2-stats strong{font:700 30px 'Space Grotesk',system-ui;color:#f4f5ef}.v2-flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:10px}.v2-flow div{display:flex;flex-direction:column;gap:8px;background:#111b28;border:1px solid #34495b;padding:14px;border-radius:12px}.v2-flow b{color:#c9f27e;font-size:13px}.v2-flow span{color:#adbdca;font-size:12px;line-height:1.5}.v2-reading{font-size:16px;line-height:1.85;color:#d8e2e9;margin:0 0 23px}.v2-card h3{line-height:1.35}.v2-card .muted{font-size:13px}.v2-criterion{margin-top:20px;border-radius:12px;background:#111e2b;padding:17px;color:#d3e2ed}.v2-criterion p{color:#aebfcd;line-height:1.7;margin-bottom:0}.v2-field{margin:20px 0}.v2-field label{display:block;color:#c9f27e;font-size:13px;margin-bottom:9px}.v2-field textarea{min-height:100px}.v2-links{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}.v2-oracle-link{display:flex;justify-content:space-between;align-items:center;gap:13px;text-align:left;background:#101c2a;border:1px solid #3c5263;border-radius:12px;color:#e8eff4;padding:15px;cursor:pointer}.v2-oracle-link:hover{border-color:#c9f27e}.v2-oracle-link span:last-child{color:#c9f27e;font-size:12px;white-space:nowrap}.v2-promo{border-color:#637a58}.v2-promo p{max-width:680px}.v2-oracle-related{margin-top:28px} 
+
+.academy-landing{display:block}
+.academy-landing>.eyebrow{margin-bottom:8px}
+.academy-progress{padding:24px;border:1px solid #354052;background:linear-gradient(135deg,#1b2939,#14202f);border-radius:18px;margin:30px 0 40px}
+.academy-progress-top{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.academy-progress .stat small{font-size:14px;color:#b3c1cb;font-weight:500}
+.academy-label-row{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 16px}
+.academy-label-row h2{margin:0}
+.academy-courses{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.academy-course{border:1px solid #3a4a58;background:linear-gradient(145deg,#202e3b,#151e2a);border-radius:20px;padding:26px;min-height:330px;display:flex;flex-direction:column}
+.academy-course h2{font-size:clamp(22px,2.7vw,29px);line-height:1.2;margin-bottom:14px}
+.academy-course .number{margin-bottom:20px}
+.academy-course .muted{margin-bottom:30px}
+.academy-course-bottom{margin-top:auto;display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.academy-meter{flex:1;min-width:130px;font-size:12px;color:#afc1ce}
+.academy-meter .bar{margin-top:8px}
+.academy-subtle{border:0;padding:16px 0 0;background:none;color:#c9f27e;text-align:left;font-size:13px}
+.academy-oracle{margin-top:22px;display:flex;justify-content:space-between;align-items:center;gap:20px;border:1px solid #58726b;background:radial-gradient(ellipse at 95% 50%,#2a433e,transparent 56%),linear-gradient(125deg,#1b293a,#14202c);border-radius:20px;padding:28px}
+.academy-oracle>div:first-child{max-width:670px}
+.academy-oracle h2{font-size:clamp(22px,3vw,31px)}
+.academy-oracle .muted{margin-bottom:22px}
+.academy-glyph{font-family:Georgia,serif;font-size:126px;color:#c9f27e;line-height:1;opacity:.85;padding:0 24px}
+.academy-process{margin:40px 0 28px;border:1px solid #354052;background:#17212d;border-radius:18px;padding:24px}
+.academy-disclaimer{border:1px solid #354052;border-radius:15px;padding:22px;background:#151e2a;color:#aab9c7;line-height:1.7;margin-bottom:25px}
+.academy-disclaimer h3{color:#f1f2ef}
+.academy-disclaimer p{margin-bottom:0}
+@media(max-width:760px){.academy-courses{grid-template-columns:1fr}.academy-course{min-height:290px}.academy-glyph{display:none}.academy-oracle{padding:23px}.academy-progress{margin-bottom:30px}.academy-label-row{align-items:flex-start;flex-direction:column}}
 `;document.head.appendChild(st);
 render();
 })();
