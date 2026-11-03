@@ -73,7 +73,7 @@ function recordPanel(id){
  const rows=entryList(id),latest=rows.slice(0,2),count=rows.length;
  return '<section class="rt-panel rt-record"><div class="rt-tag">REPETICIÓN Y COMPARACIÓN</div><h3>'+count+' '+(count===1?'sesión registrada':'sesiones registradas')+'</h3>'+
  (count?' <p class="rt-note">Tus sesiones quedan guardadas en este navegador y también se reflejan en el diario general.</p>':'<p class="rt-note">Cuando completes tu primer ensayo aparecerá aquí. Puedes repetir cualquier técnica sin perder la anterior.</p>')+
- (latest.length?'<div class="rt-compare">'+latest.map((r,i)=>'<div class="rt-compareitem"><small>'+(i===0?'Última sesión':'Sesión anterior')+' · '+esc(r.date)+'</small><p><b>Situación</b> '+esc(r.situation||'—')+'</p><p><b>Observación</b> '+esc(r.observation||'—')+'</p><p><b>Acción</b> '+esc(r.action||'—')+'</p><p><b>Revisión</b> '+esc(r.review||'Pendiente de revisión')+'</p></div>').join('')+'</div>':'')+
+ (latest.length?'<div class="rt-compare">'+latest.map((r,i)=>'<div class="rt-compareitem"><small>'+(i===0?'Última sesión':'Sesión anterior')+' · '+esc(r.date)+'</small><p><b>Situación</b> '+esc(r.situation||'—')+'</p><p><b>Observación</b> '+esc(r.observation||'—')+'</p><p><b>Acción</b> '+esc(r.action||'—')+'</p><p><b>Revisión</b> '+esc(r.review||'Pendiente de revisión')+'</p><label class="rt-review-label" for="rt-review-'+r.timestamp+'">Actualizar la revisión</label><textarea id="rt-review-'+r.timestamp+'" rows="2" placeholder="¿Qué ocurrió después?">'+esc(r.review||'')+'</textarea><button class="btn" onclick="rtUpdateReview('+r.timestamp+')">Guardar revisión</button></div>').join('')+'</div>':'')+
  (count>2?'<details class="rt-old"><summary>Ver todas las sesiones ('+count+')</summary>'+rows.slice(2).map(r=>'<div class="rt-oldentry"><small>'+esc(r.date)+'</small><p>'+esc(r.situation||r.observation||r.action||'Registro')+'</p></div>').join('')+'</details>':'')+'</section>';
 }
 function related(item){
@@ -131,6 +131,21 @@ window.rtStepChanged=function(){
 window.rtClearSteps=function(){
  document.querySelectorAll('[data-rt-step]').forEach(x=>x.checked=false);window.rtStepChanged()
 };
+window.rtUpdateReview=function(timestamp){
+ const item=items().find(i=>i.id===current);if(!item)return;
+ const el=document.getElementById('rt-review-'+timestamp);if(!el)return;
+ const next=el.value.trim(),rows=history(),record=rows.find(x=>x.id===item.id&&x.timestamp===timestamp);
+ if(!record)return;
+ record.review=next;state.rtHistory=rows;
+ const matching=state.entries?.find(x=>x.rtSessionKey===item.id+'-'+timestamp);
+ if(matching){
+   matching.fields={...(matching.fields||{}),revision:next};
+   matching.text='Situación: '+record.situation+'\n\nObservación: '+record.observation+'\n\nAcción: '+record.action+'\n\nRevisión: '+next;
+ }
+ persist();localStorage.setItem(KEY,JSON.stringify(rows));
+ document.getElementById('rt-history').innerHTML=recordPanel(item.id);
+ const msg=document.getElementById('rt-msg');if(msg)msg.textContent='Revisión actualizada y guardada.';
+};
 window.rtSave=function(){
  const id=current,item=items().find(x=>x.id===id);if(!item)return;
  const values={};for(const k of ['situation','observation','action','review'])values[k]=document.getElementById('rt-'+k)?.value.trim()||'';
@@ -142,7 +157,7 @@ window.rtSave=function(){
    setComplete(item,true);
    const button=document.getElementById('rt-complete-btn');if(button){button.textContent='✓ Completada · Desmarcar';button.setAttribute('aria-pressed','true')}
  }
- if(Array.isArray(state.entries)){state.entries.unshift({id,title:'Volumen '+item.vol+' · '+item.title,date:entry.date,text:'Situación: '+values.situation+'\n\nObservación: '+values.observation+'\n\nAcción: '+values.action+'\n\nRevisión: '+values.review});persist()}
+ if(Array.isArray(state.entries)){state.entries.unshift({id,rtSessionKey:item.id+'-'+entry.timestamp,title:'Volumen '+item.vol+' · '+item.title,date:entry.date,fields:{situacion:values.situation,observacion:values.observation,accion:values.action,revision:values.review},text:'Situación: '+values.situation+'\n\nObservación: '+values.observation+'\n\nAcción: '+values.action+'\n\nRevisión: '+values.review});persist()}
  document.getElementById('rt-msg').textContent='Sesión guardada. Puedes volver mañana para registrar otra y comparar.';
  for(const k of ['situation','observation','action','review'])document.getElementById('rt-'+k).value='';
  document.getElementById('rt-history').innerHTML=recordPanel(id);
@@ -218,7 +233,7 @@ const st=document.createElement('style');st.textContent=`
 .rt-compare{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:14px}
 .rt-compareitem{padding:17px;border:1px solid #3c5060;border-radius:14px;background:#10202d}
 .rt-compareitem small{color:#c9f27e}.rt-compareitem p{font-size:13px;color:#c2d0de;line-height:1.65;overflow-wrap:anywhere}.rt-compareitem b{display:block;color:#f3f3f1}
-.rt-old{margin-top:15px;color:#c9f27e}.rt-old summary{cursor:pointer}.rt-oldentry{border-bottom:1px solid #314657;padding:12px 0;color:#b8ccd7}
+.rt-review-label{display:block;color:#c9f27e;font-size:12px;margin:15px 0 7px}.rt-compareitem textarea{min-height:65px;font-size:13px;margin-bottom:8px}.rt-compareitem .btn{font-size:12px;padding:8px 12px}.rt-old{margin-top:15px;color:#c9f27e}.rt-old summary{cursor:pointer}.rt-oldentry{border-bottom:1px solid #314657;padding:12px 0;color:#b8ccd7}
 .rt-related{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
 .rt-link{padding:15px;text-align:left;border:1px solid #415a67;background:#0d1c29;color:#e0e8ed;border-radius:12px;display:flex;flex-direction:column;gap:8px}.rt-link small{color:#98b2c3}.rt-link b{color:#c9f27e}
 .rt-filters{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin:22px 0}
