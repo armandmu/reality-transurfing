@@ -191,13 +191,16 @@ const oldV2=window.v2Open;
 window.v2Open=function(mode,c,l){oldV2(mode,c,l);decorate();if(mode==='leccion'&&Number.isInteger(c)&&Number.isInteger(l)){const p=window.rtVolume2?.[c]?.lessons?.[l];if(p)detail('v2-'+p.id)}};
 const oldVol=window.openVol;
 window.openVol=function(n,p,c,l){oldVol(n,p,c,l);decorate();if(p==='lesson')detail('v'+n+'-'+c+'-'+l)};
+const ORACLE_LESSON_ANCHORS=["El Celador: vuelve a despertar","Despertar en el sueño","El credo personal","La identidad singular","El espejo dual","Del bumerán al foco","El reflejo y sus condiciones","Encuentra la ola","Detector de importancia","Liberación","Laberinto de la inseguridad","Coordinación de la importancia","Unidad del alma y la mente","El permiso de ser imperfecto","Elige tu actitud del día","Laberinto de la inseguridad","Culpa o responsabilidad","Potenciales de importancia","El credo personal","Permitir un camino propio","El veredicto del hacedor","Declaración de intenciones","Energía de la intención","Intención y elección","Limpiar la capa del mundo","Encuentra la ola","El reflejo y sus condiciones","Diapositivas positivas","El espejo dual","Relación con la capa del mundo","Los hilos que me mueven","El hacedor de la realidad","Regla del péndulo","Regla del Transurfing","El Celador: vuelve a despertar","La amalgama de la realidad","Visualización del proceso","La vía de menor resistencia","Tus puertas","Detener la batalla","Soltar la dependencia","Diapositivas positivas","Romper el guion","Tus puertas","Detector de importancia","Cómo recuperar al ser amado","Coordinación de la intención","Ruptura del guion colectivo","La vía de menor resistencia","Los estereotipos de éxito","Extraña realidad","El hacedor de la realidad","Intención y elección","Liberar recursos disponibles","Matices de los decorados","Deformación de la realidad","Laberinto de la inseguridad","El permiso de ser imperfecto","Tres papeles, una elección","Vela mayor del alma","Objetivos ajenos","Tus objetivos","Energía de la intención","Unidad del alma y la mente","Historia o pronóstico","Energía de las relaciones","Suelta el guion","Funda para el alma","Desidealizar con cariño","Indulgencia","Polarización y opuestos","La identidad singular","Unidad del alma y la mente","Vela mayor del alma","Relación serena con el dinero","Ampliación de la zona de confort","Transmitir un buen estado","Ángel de la Guarda"];
 const GUIDE_FALLBACK={
   3:['hacedor','elección'],13:['singularidad','alma'],14:['amor propio','singularidad'],15:['cuidado','objetivo'],16:['confianza','fe'],17:['culpa'],29:['amalgama','espejo dual'],31:['péndulos','reacción'],44:['puertas'],49:['corriente de las variantes'],56:['descontento','insatisfacción','reprobación','deformación de la realidad','rechazo'],60:['susurro','intuición'],66:['apoyo','relaciones'],68:['alma','funda'],73:['alma y mente','mente'],75:['dinero'],77:['relaciones','freiling'],78:['credo','guardián']
 };
 function oracleMap(n){
  const root=document.getElementById('root');
  if(!n||!root||root.querySelector('.rt-oracle-map'))return;
- let found=items().filter(i=>i.cards?.includes(n));
+ const all=items();
+ const preferred=all.find(i=>norm(i.title)===norm(ORACLE_LESSON_ANCHORS[n-1]||''));
+ let found=[...(preferred?[preferred]:[]),...all.filter(i=>i.cards?.includes(n))];
  const keys=GUIDE_FALLBACK[n]||[];
  for(const term of keys){
    let candidates=items().filter(i=>norm(i.title).includes(norm(term))||norm(i.section).includes(norm(term)));
