@@ -115,7 +115,7 @@ function addIndexButton(nav){
  nav.appendChild(b);
 }
 window.rtIndexOpen=function(){view='rtInventory';inventoryTerm='';inventoryVolume='all';render();window.scrollTo({top:0,behavior:'smooth'})};
-window.rtIndexFilter=function(q,v){inventoryTerm=q||'';inventoryVolume=v||'all';inventory()};
+window.rtIndexFilter=function(q,v){inventoryTerm=q||'';inventoryVolume=v||'all';const cursor=document.getElementById('rt-q')?.selectionStart??(q||'').length;inventory();const input=document.getElementById('rt-q');if(input){input.focus();input.setSelectionRange(cursor,cursor)}};
 function inventory(){
  const root=document.getElementById('root'),all=items(),shown=all.filter(x=>(inventoryVolume==='all'||x.vol===Number(inventoryVolume))&&norm(x.title+' '+x.section+' '+x.explanation).includes(norm(inventoryTerm)));
  const practiced=all.filter(x=>entryList(x.id).length).length;
@@ -138,8 +138,28 @@ const oldV2=window.v2Open;
 window.v2Open=function(mode,c,l){oldV2(mode,c,l);decorate();if(mode==='leccion'&&Number.isInteger(c)&&Number.isInteger(l)){const p=window.rtVolume2?.[c]?.lessons?.[l];if(p)detail('v2-'+p.id)}};
 const oldVol=window.openVol;
 window.openVol=function(n,p,c,l){oldVol(n,p,c,l);decorate();if(p==='lesson')detail('v'+n+'-'+c+'-'+l)};
+const GUIDE_FALLBACK={
+  3:['hacedor','elección'],13:['singularidad','alma'],14:['amor propio','singularidad'],15:['cuidado','objetivo'],16:['confianza','fe'],17:['culpa'],29:['amalgama','espejo dual'],31:['péndulos','reacción'],44:['puertas'],49:['corriente de las variantes'],56:['descontento','insatisfacción'],60:['susurro','intuición'],66:['apoyo','relaciones'],68:['alma','funda'],73:['alma y mente','mente'],75:['dinero'],77:['relaciones','freiling'],78:['credo','guardián']
+};
+function oracleMap(n){
+ const root=document.getElementById('root');
+ if(!n||!root||root.querySelector('.rt-oracle-map'))return;
+ let found=items().filter(i=>i.cards?.includes(n));
+ const keys=GUIDE_FALLBACK[n]||[];
+ for(const term of keys){
+   let candidates=items().filter(i=>norm(i.title).includes(norm(term))||norm(i.section).includes(norm(term)));
+   if(candidates.length)found.push(candidates[0]);
+ }
+ const unique=[...new Map(found.map(i=>[i.id,i])).values()];
+ if(!unique.length)return;
+ const byVol=[1,2,3,4,5].flatMap(vol=>unique.filter(i=>i.vol===vol).slice(0,3));
+ const section=document.createElement('section');
+ section.className='rt-panel rt-oracle-map';
+ section.innerHTML='<div class="rt-tag">MAPA DE CONEXIONES · 5 VOLÚMENES</div><h3>Continúa estudiando el principio de esta carta</h3><p class="rt-note">Las relaciones son temáticas y sirven para encontrar explicaciones complementarias, sin implicar que cada carta pertenezca a un único tomo.</p><div class="rt-related">'+byVol.map(i=>'<button class="rt-link" onclick="'+i.open+'"><small>Vol. '+i.vol+' · '+esc(i.section)+'</small><b>'+esc(i.title)+' ↗</b></button>').join('')+'</div>';
+ const nav=root.querySelector('nav.tabs');if(nav)nav.before(section);else root.appendChild(section);
+}
 const oldOracle=window.oracleOpen;
-window.oracleOpen=function(mode,idx){oldOracle(mode,idx);decorate()};
+window.oracleOpen=function(mode,idx){oldOracle(mode,idx);decorate();if(mode==='carta'&&Number.isInteger(idx))oracleMap(idx+1)};
 const st=document.createElement('style');st.textContent=`
 .rt-panel{margin:24px 0;padding:25px;border:1px solid #405666;background:linear-gradient(145deg,#1c2b39,#15202d);border-radius:18px}
 .rt-enhanced>.rt-panel:first-child{margin-top:26px}
