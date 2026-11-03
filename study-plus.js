@@ -37,13 +37,18 @@ function protocol(item){
  const topic=item.how?.[0]||'Escribe un acto pequeño que puedas comprobar.';
  if(p)return {...p,type:'Técnica o concepto del libro · adaptación guiada'};
  const base=item.vol===1?'Ejercicio complementario basado en el volumen I':item.vol===2?'Práctica didáctica basada en el volumen II':'Práctica complementaria de este apartado';
- return {key:item.title,type:base,page:item.page||null,
-   steps:['Elige una situación concreta que represente «'+item.title+'»; indica cuándo ocurrió y cuál es el dato que conoces de primera mano.',
-     'Relee el principio: '+item.explanation+' Distingue lo que propone Zeland de lo que puedes comprobar.',
-     topic,
-     'Anota qué hiciste, qué resultado observaste y cómo lo repetirías o adaptarías dentro de siete días.'],
-   example:item.example||'Ejemplo: recuerda una decisión reciente. En vez de repetir tu interpretación inicial, identifica un dato concreto y ensaya una respuesta que dependa de ti.',
-   caution:'Esta actividad es una adaptación práctica, no una transcripción literal. No atribuyas a los pensamientos el control de enfermedades, sucesos externos ni decisiones ajenas.'};
+ const originalSteps=(item.how||[]).filter(Boolean);
+ const steps=originalSteps.length>=3?originalSteps.map((t,i)=>
+   (i===0?'Preparación: ':i===originalSteps.length-1?'Aplicación: ':'Observación: ')+t
+ ):[
+   'Elige una situación específica en la que reconozcas «'+item.title+'». Escribe los datos que puedes comprobar y los pensamientos que te suscita.',
+   'Lee la propuesta del libro en esta ficha. Decide qué parte quieres explorar, manteniendo tus límites y tu criterio.',
+   topic,
+   'Registra cómo ha ido el ensayo y qué cambiarías si lo repitieses en los próximos días.'
+ ];
+ return {key:item.title,type:base,page:item.page||null,steps,
+   example:item.example||'Por ejemplo, ante una situación cotidiana relacionada con «'+item.title+'», puedes seguir los pasos de esta ficha, ensayar la respuesta descrita y registrar un cambio observable en tus propias acciones.',
+   caution:'Esta actividad es una adaptación didáctica, no la reproducción literal del libro. No se deben atribuir a los pensamientos enfermedades, accidentes, decisiones ajenas ni otros sucesos fuera de tu control.'};
 }
 function history(){if(Array.isArray(state.rtHistory))return state.rtHistory;try{let v=JSON.parse(localStorage.getItem(KEY)||'[]');if(!Array.isArray(v))v=[];if(v.length){state.rtHistory=v;persist()}return v}catch(e){return []}}
 function entryList(id){return history().filter(e=>e.id===id).sort((a,b)=>b.timestamp-a.timestamp)}
