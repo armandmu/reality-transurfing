@@ -136,5 +136,6 @@ const sheet=document.createElement('style');sheet.textContent=`
 .academy3-oraclelinks,.academy3-related-links{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}.academy3-oraclelink{border:1px solid #405669;background:#0d1c2c;color:#dde8ee;border-radius:12px;padding:15px;text-align:left;display:flex;flex-direction:column;gap:8px}.academy3-oraclelink span{font-size:12px;color:#9fb4c6}.academy3-oraclelink strong{font-size:13px;color:#c9f27e}.academy3-related{margin-top:26px}
 @media(max-width:680px){.academy3-grid{grid-template-columns:1fr}.academy3-oracle{padding:22px}.academy3-star{display:none}.academy3-hero{gap:16px}.academy3-volume{min-height:205px}.academy3-panel{padding:20px}}
 `;document.head.appendChild(sheet);
+window.rtBooks=BOOKS;
 render();
 })();
