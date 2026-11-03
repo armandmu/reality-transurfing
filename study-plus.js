@@ -32,9 +32,9 @@ function protocol(item){
    example:item.example||'Ejemplo: recuerda una decisión reciente. En vez de repetir tu interpretación inicial, identifica un dato concreto y ensaya una respuesta que dependa de ti.',
    caution:'Esta actividad es una adaptación práctica, no una transcripción literal. No atribuyas a los pensamientos el control de enfermedades, sucesos externos ni decisiones ajenas.'};
 }
-function history(){try{let v=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(v)?v:[]}catch(e){return []}}
+function history(){if(Array.isArray(state.rtHistory))return state.rtHistory;try{let v=JSON.parse(localStorage.getItem(KEY)||'[]');if(!Array.isArray(v))v=[];if(v.length){state.rtHistory=v;persist()}return v}catch(e){return []}}
 function entryList(id){return history().filter(e=>e.id===id).sort((a,b)=>b.timestamp-a.timestamp)}
-function store(entry){let a=history();a.unshift(entry);localStorage.setItem(KEY,JSON.stringify(a))}
+function store(entry){let a=history();a.unshift(entry);state.rtHistory=a;persist();localStorage.setItem(KEY,JSON.stringify(a))}
 function progressBar(n,t){return '<div class="rt-meter"><span>'+n+' de '+t+' pasos</span><div class="bar"><div class="fill" style="width:'+(t?Math.round(n/t*100):0)+'%"></div></div></div>'}
 function recordPanel(id){
  const rows=entryList(id),latest=rows.slice(0,2),count=rows.length;
