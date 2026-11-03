@@ -219,6 +219,7 @@ function oracleMap(n){
  section.innerHTML='<div class="rt-tag">MAPA DE CONEXIONES · 5 VOLÚMENES</div><h3>Continúa estudiando el principio de esta carta</h3><p class="rt-note">Las relaciones son temáticas y sirven para encontrar explicaciones complementarias, sin implicar que cada carta pertenezca a un único tomo.</p><div class="rt-related">'+byVol.map(i=>'<button class="rt-link" onclick="'+i.open+'"><small>Vol. '+i.vol+' · '+esc(i.section)+'</small><b>'+esc(i.title)+' ↗</b></button>').join('')+'</div>';
  const nav=root.querySelector('nav.tabs');if(nav)nav.before(section);else root.appendChild(section);
 }
+window.rtOracleMapOnRender=oracleMap;
 const oldOracle=window.oracleOpen;
 window.oracleOpen=function(mode,idx){oldOracle(mode,idx);decorate();if(mode==='carta'&&Number.isInteger(idx))oracleMap(idx+1)};
 const st=document.createElement('style');st.textContent=`
