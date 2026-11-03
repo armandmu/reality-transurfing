@@ -95,5 +95,6 @@ const st=document.createElement('style');st.textContent=`
 .academy-disclaimer p{margin-bottom:0}
 @media(max-width:760px){.academy-courses{grid-template-columns:1fr}.academy-course{min-height:290px}.academy-glyph{display:none}.academy-oracle{padding:23px}.academy-progress{margin-bottom:30px}.academy-label-row{align-items:flex-start;flex-direction:column}}
 `;document.head.appendChild(st);
+window.rtVolume2=V2;
 render();
 })();
