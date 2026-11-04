@@ -19,6 +19,8 @@ jobs:
     steps:
       - name: Obtener código
         uses: actions/checkout@v4
+      - name: Verificar Academia antes de publicar
+        run: node tests/audit.mjs
       - name: Configurar Pages
         uses: actions/configure-pages@v5
       - name: Preparar contenido
