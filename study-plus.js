@@ -56,7 +56,7 @@ function contextualExample(item,topic){
  const context=EXAMPLE_CONTEXT[norm(item.section)]||'Tienes una situación cotidiana pendiente de resolver.';
  return context+' En vez de actuar inmediatamente, escribes los hechos y realizas este paso: '+topic+' Al terminar, registras qué has hecho y qué has observado, sin exigir que otras personas o circunstancias respondan como deseas.';
 }
-const AUTHOR_TECHNIQUES=new Set(['transacción','paso de la intención','capa protectora','incrementar tu energía','visualización del objetivo','visualización del proceso','diapositivas positivas','cadenas de transferencia','marco de intención','frame','onda explosiva','esfera externa','reducción de decorados','amalgama del objetivo','fijación de la intención','integración de las técnicas','coordinación de la intención','diapositivas acústicas','diapositiva y proceso','sintonizar con el freile','despertar en el sueño'].map(norm));
+const AUTHOR_TECHNIQUES=new Set(['transacción','capa protectora','incrementar tu energía','visualización del objetivo','visualización del proceso','diapositivas positivas','cadenas de transferencia','marco de intención','frame','onda explosiva','esfera externa','reducción de decorados','amalgama del objetivo','fijación de la intención','integración de las técnicas','coordinación de la intención','diapositivas acústicas','diapositiva y proceso','sintonizar con el freile','despertar en el sueño'].map(norm));
 function kindOf(item){return AUTHOR_TECHNIQUES.has(norm(item.title))?'Técnica descrita en el libro · guía adaptada':'Ejercicio didáctico de la Academia'}
 function protocol(item){
  const title=norm(item.title);
