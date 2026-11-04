@@ -22,8 +22,10 @@ assert.equal(cards.length,78);
 assert.equal(new Set(cards.map(c=>c.id)).size,78);
 assert.equal(anchors.length,78);
 assert.equal(new Set(protocols.map(p=>p.key)).size,protocols.length);
-assert.equal(sources.reduce((n,b)=>n+b.chapters.reduce((m,c)=>m+c[3].length,0),0),136);
+assert.equal(sources.reduce((n,b)=>n+b.chapters.reduce((m,c)=>m+c[3].length,0),0),138);
 const normalized=x=>String(x).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim();
+const volumeTwoSources=sources.find(x=>x.n===2).chapters.flatMap(c=>c[3].map(t=>normalized(t[1])));
+for(const section of v2.flatMap(c=>c.lessons))assert(volumeTwoSources.includes(normalized(section.name)),'Volume II missing source mapping: '+section.name);
 const lessonTitles=[
  ...practices.map(p=>p.title),
  ...v2.flatMap(c=>c.lessons.map(l=>l.name)),
