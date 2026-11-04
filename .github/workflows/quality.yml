@@ -19,3 +19,5 @@ jobs:
           node-version: '22'
       - name: Comprobación de contenido y funcionamiento
         run: node tests/audit.mjs
+      - name: Prueba de navegación en Chrome
+        run: node tests/browser-smoke.mjs
