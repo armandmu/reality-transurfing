@@ -1,0 +1,45 @@
+import {createServer} from 'node:http';
+import {readFileSync,existsSync} from 'node:fs';
+import {spawn} from 'node:child_process';
+import {resolve,normalize,extname} from 'node:path';
+const root=process.cwd();
+const testCode=(function runTest(){
+ document.addEventListener('DOMContentLoaded',()=>{
+  const errors=[],checks=[];
+  function c(n,f){try{if(!f())throw Error('false');checks.push(n)}catch(e){errors.push(n+': '+e.message)}}
+  c('inicio',()=>{app('inicio');return document.querySelectorAll('.academy3-volume').length===5});
+  c('fuentes',()=>{rtSourceAuditOpen();return document.querySelectorAll('.rt-source-book').length===5});
+  c('mapa',()=>{rtIndexOpen();return document.querySelectorAll('.rt-index-card').length===167&&!!document.querySelector('#rt-t')});
+  c('filtro',()=>{rtIndexFilter('','all','original');const n=document.querySelectorAll('.rt-index-card').length;return n>0&&n<167});
+  c('volumen I',()=>{app('practica',0);return !!document.querySelector('.rt-enhanced')});
+  c('borrador',()=>{const x=document.querySelector('#rt-situation');x.value='Prueba de guardado';x.dispatchEvent(new Event('input',{bubbles:true}));app('inicio');app('practica',0);return document.querySelector('#rt-situation').value==='Prueba de guardado'});
+  c('guardar y progreso',()=>{for(const x of document.querySelectorAll('[data-rt-step]')){x.checked=true;x.dispatchEvent(new Event('change',{bubbles:true}))}document.querySelector('#rt-observation').value='Resultado';document.querySelector('button[onclick="rtSave()"]').click();return state.done.length===1&&state.entries.length===1});
+  c('volumen II',()=>{v2Open('leccion',0,0);return !!document.querySelector('.rt-enhanced')});
+  c('volumen III',()=>{openVol(3,'lesson',0,0);return !!document.querySelector('.rt-enhanced')});
+  c('volumen IV',()=>{openVol(4,'lesson',0,0);return !!document.querySelector('.rt-enhanced')});
+  c('volumen V',()=>{openVol(5,'lesson',0,0);return !!document.querySelector('.rt-enhanced')});
+  c('carta 56',()=>{oracleOpen('carta',55);return document.querySelector('.rt-oracle-map')?.textContent.includes('Deformación de la realidad')});
+  c('carta 78',()=>{oracleOpen('carta',77);return !!document.querySelector('.rt-oracle-map')});
+  c('favoritos',()=>{oracleFavorite(77);return !!document.querySelector('.rt-oracle-map')});
+  const n=document.createElement('pre');n.id='qa-browser-output';n.dataset.result=btoa(unescape(encodeURIComponent(JSON.stringify({checks,errors}))));document.body.appendChild(n)
+ })
+})();
+const server=createServer((req,res)=>{
+ const path=decodeURIComponent((req.url||'/').split('?')[0]);
+ if(path==='/'||path==='/index.html'){res.writeHead(200,{'content-type':'text/html; charset=utf-8'});res.end(readFileSync(resolve(root,'index.html'),'utf8').replace('</body>','<script>'+testCode+'</script></body>'));return}
+ const dest=resolve(root,'.'+normalize(path));
+ if(!dest.startsWith(root)||!existsSync(dest)){res.writeHead(404);res.end('Not found');return}
+ const ext=extname(dest);res.writeHead(200,{'content-type':ext==='.js'?'text/javascript':ext==='.webp'?'image/webp':'text/plain'});res.end(readFileSync(dest))
+});
+await new Promise(ok=>server.listen(0,'127.0.0.1',ok));
+const exe=['/usr/bin/google-chrome','/usr/bin/chromium','/usr/bin/chromium-browser'].find(existsSync);
+if(!exe){server.close();throw Error('Chrome not found')}
+const chrome=spawn(exe,['--headless','--no-sandbox','--disable-dev-shm-usage','--disable-gpu','--disable-background-networking','--virtual-time-budget=7000','--dump-dom','http://127.0.0.1:'+server.address().port+'/'],{stdio:['ignore','pipe','pipe']});
+let out='',err='';chrome.stdout.on('data',b=>out+=b.toString());chrome.stderr.on('data',b=>err+=b.toString().slice(0,500));
+const timeout=setTimeout(()=>chrome.kill('SIGKILL'),40000);await new Promise(ok=>chrome.on('close',ok));clearTimeout(timeout);server.close();
+const match=out.match(/<pre id="qa-browser-output" data-result="([^"]+)"/);
+if(!match){console.error('Browser output missing',out.slice(-400),err.slice(-400));process.exit(1)}
+const report=JSON.parse(Buffer.from(match[1],'base64').toString('utf8'));
+for(const c of report.checks)console.log('✓ '+c);
+if(report.errors.length){console.error(report.errors);process.exit(1)}
+console.log('Browser checks passed:',report.checks.length);
