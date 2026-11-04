@@ -79,6 +79,22 @@ function protocol(item){
 }
 function history(){if(Array.isArray(state.rtHistory))return state.rtHistory;try{let v=JSON.parse(localStorage.getItem(KEY)||'[]');if(!Array.isArray(v))v=[];if(v.length){state.rtHistory=v;persist()}return v}catch(e){return []}}
 function entryList(id){return history().filter(e=>e.id===id).sort((a,b)=>b.timestamp-a.timestamp)}
+function draftFor(id){return state.rtDrafts&&typeof state.rtDrafts==='object'&&state.rtDrafts[id]?state.rtDrafts[id]:null}
+function saveDraft(){
+ if(!current)return;
+ const data={steps:[...document.querySelectorAll('[data-rt-step]')].map(x=>!!x.checked),date:Date.now()};
+ for(const k of ['situation','observation','action','review'])data[k]=document.getElementById('rt-'+k)?.value||'';
+ state.rtDrafts={...(state.rtDrafts||{}),[current]:data};persist();
+}
+window.rtDraftChanged=function(){saveDraft()};
+function restoreDraft(id){
+ const d=draftFor(id);if(!d)return;
+ document.querySelectorAll('[data-rt-step]').forEach((x,i)=>{x.checked=!!d.steps?.[i]});
+ for(const k of ['situation','observation','action','review']){const el=document.getElementById('rt-'+k);if(el)el.value=d[k]||''}
+ const count=(d.steps||[]).filter(Boolean).length,inputs=[...document.querySelectorAll('[data-rt-step]')],p=document.getElementById('rt-step-progress');
+ if(p)p.innerHTML=progressBar(count,inputs.length);
+}
+
 function store(entry){let a=history();a.unshift(entry);state.rtHistory=a;persist();localStorage.setItem(KEY,JSON.stringify(a))}
 function isComplete(item){
  if(!item)return false;
@@ -148,17 +164,19 @@ function detail(id){
  p.steps.map((step,i)=>'<label class="rt-step"><input type="checkbox" data-rt-step="'+i+'" onchange="rtStepChanged()"><span><b>Paso '+(i+1)+'</b><span>'+esc(step)+'</span></span></label>').join('')+
  '<div id="rt-step-progress">'+progressBar(0,p.steps.length)+'</div><div class="rt-warning"><b>Qué evitar</b><p>'+esc(p.caution)+'</p></div></section>'+
  '<section class="rt-panel"><div class="rt-tag">DIARIO Y SEGUIMIENTO</div><h2>Tu sesión de hoy</h2><p class="rt-note">Puedes repetir esta práctica tantas veces como necesites y comparar lo que anotas en días distintos.</p>'+
- [['situation','¿Qué situación concreta has elegido?'],['observation','¿Qué has observado al practicar?'],['action','¿Qué acción realizarás en las próximas 24 horas?'],['review','¿Qué resultado has podido comprobar? (opcional)']].map(x=>'<div class="rt-field"><label for="rt-'+x[0]+'">'+x[1]+'</label><textarea id="rt-'+x[0]+'" rows="3"></textarea></div>').join('')+
+ [['situation','¿Qué situación concreta has elegido?'],['observation','¿Qué has observado al practicar?'],['action','¿Qué acción realizarás en las próximas 24 horas?'],['review','¿Qué resultado has podido comprobar? (opcional)']].map(x=>'<div class="rt-field"><label for="rt-'+x[0]+'">'+x[1]+'</label><textarea id="rt-'+x[0]+'" rows="3" oninput="rtDraftChanged()"></textarea></div>').join('')+
  '<p id="rt-msg" class="rt-note"></p><div class="stack"><button class="btn primary" onclick="rtSave()">Guardar esta sesión</button><button class="btn" id="rt-complete-btn" aria-pressed="'+String(isComplete(item))+'" onclick="rtToggleComplete()">'+(isComplete(item)?'✓ Completada · Desmarcar':'Marcar como completada ✓')+'</button><button class="btn" onclick="rtClearSteps()">Reiniciar pasos</button></div></section>'+
  '<div id="rt-history">'+recordPanel(item.id)+'</div>'+
  related(item);
  first.insertAdjacentElement('afterend',section);
+ restoreDraft(item.id);
  const rootTabs=root.querySelector('nav.tabs');if(rootTabs)addIndexButton(rootTabs);
  if(done){const msg=document.getElementById('rt-msg');if(msg)msg.textContent='Ya tienes '+done+' sesiones de esta práctica. Puedes registrar otra sin borrar las anteriores.'}
 }
 window.rtStepChanged=function(){
  const inputs=[...document.querySelectorAll('[data-rt-step]')],n=inputs.filter(x=>x.checked).length,place=document.getElementById('rt-step-progress');
  if(place)place.innerHTML=progressBar(n,inputs.length);
+ saveDraft();
 };
 window.rtClearSteps=function(){
  document.querySelectorAll('[data-rt-step]').forEach(x=>x.checked=false);window.rtStepChanged()
@@ -193,6 +211,7 @@ window.rtSave=function(){
  document.getElementById('rt-msg').textContent='Sesión guardada. Puedes volver mañana para registrar otra y comparar.';
  for(const k of ['situation','observation','action','review'])document.getElementById('rt-'+k).value='';
  document.getElementById('rt-history').innerHTML=recordPanel(id);
+ if(state.rtDrafts&&state.rtDrafts[id]){delete state.rtDrafts[id];persist()}
 };
 function addIndexButton(nav){
  if(nav.querySelector('.rt-index-tab'))return;
