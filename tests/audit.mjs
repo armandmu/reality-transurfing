@@ -54,6 +54,7 @@ class FileReader{readAsText(file){this.result=file.text;this.onload?.()}}
 const window={scrollTo(){}};
 const sandbox=vm.createContext({document,window,localStorage,FileReader,clearInterval(){},setInterval(){return 1},setTimeout(){},alert(){},Date,Blob:class{},console});
 for(const src of [inline,...files.slice(1).map(f=>data[f])])vm.runInContext(src,sandbox);
+const appState=vm.runInContext('state',sandbox);
 const visit=(label,fn)=>{fn();assert(rendered.length>300,'Empty screen: '+label)};
 visit('Home',()=>sandbox.app('inicio'));
 visit('Source index',()=>window.rtSourceAuditOpen());
@@ -76,21 +77,21 @@ for(const [label,go] of [
  for(const f of ['situation','observation','action','review'])document.getElementById('rt-'+f).value=f==='situation'?'Ejemplo de práctica':f;
  window.rtSave();
 }
-assert.equal(sandbox.state.rtHistory.length,5);
-assert.equal(sandbox.state.entries.length,5);
-assert.equal(sandbox.state.done.length,1);
-assert.equal(sandbox.state.v2Done.length,1);
-assert.equal(sandbox.state.extraCompleted.length,3);
+assert.equal(appState.rtHistory.length,5);
+assert.equal(appState.entries.length,5);
+assert.equal(appState.done.length,1);
+assert.equal(appState.v2Done.length,1);
+assert.equal(appState.extraCompleted.length,3);
 assert(localStorage.getItem('transurfing-v1')?.includes('"rtHistory"'),'History not included in backup');
-const recent=sandbox.state.rtHistory[0];
+const recent=appState.rtHistory[0];
 document.getElementById('rt-review-'+recent.timestamp).value='Revisión posterior';
 window.rtUpdateReview(recent.timestamp);
-assert.equal(sandbox.state.rtHistory[0].review,'Revisión posterior');
-assert(sandbox.state.entries[0].text.includes('Revisión posterior'));
+assert.equal(appState.rtHistory[0].review,'Revisión posterior');
+assert(appState.entries[0].text.includes('Revisión posterior'));
 const draftKey='v5-0-0';
 window.openVol(5,'lesson',0,0);
 document.getElementById('rt-situation').value='Borrador de prueba';
 window.rtDraftChanged();
-assert.equal(sandbox.state.rtDrafts[draftKey].situation,'Borrador de prueba');
+assert.equal(appState.rtDrafts[draftKey].situation,'Borrador de prueba');
 assert(localStorage.getItem('transurfing-v1')?.includes('Borrador de prueba'));
 console.log('PASS: all 167 activities, 78 oracle cards, 136 source references, five progress systems, diary, review and draft persistence');
