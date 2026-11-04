@@ -29,6 +29,33 @@ const PROTOCOL_ALIASES={
  'celador':['El Celador: vuelve a despertar','Hábito de estar despierto'],
  'onda de la suerte':['Encuentra la ola','Registrar señales favorables']
 };
+const EXAMPLE_CONTEXT={
+ 'modelo de las variantes':'Piensa en una decisión profesional con varios caminos viables.',
+ 'péndulos':'En un grupo de mensajes surge una discusión en la que sientes que debes intervenir.',
+ 'ola de la suerte':'Recibes una noticia favorable pequeña y decides cómo aprovecharla.',
+ 'equilibrio':'Preparas una actividad importante y notas que estás exigiéndote un resultado impecable.',
+ 'transición inducida':'Te encuentras leyendo repetidamente noticias que anticipan dificultades.',
+ 'corriente de las variantes':'Una tarea que parecía sencilla se atasca y buscas otra forma de avanzar.',
+ 'intención':'Te planteas una meta que deseas, pero que todavía no has convertido en un plan.',
+ 'diapositivas':'Preparas un proyecto y te cuesta imaginar cómo actuarías si estuviera en marcha.',
+ 'el alma y la mente':'Hay una decisión que te atrae y, al mismo tiempo, despierta objeciones.',
+ 'objetivos y puertas':'Quieres avanzar hacia una meta y estás considerando varias rutas posibles.',
+ 'energía':'Llevas varias horas concentrado y quieres observar qué te ayuda a recuperar atención.',
+ 'freiling':'Tienes una conversación pendiente y deseas escuchar sin defenderte automáticamente.',
+ 'coordinación':'Un plan cambia sin avisar y notas el impulso de protestar o anticipar lo peor.',
+ 'adelante al pasado':'Recorres una calle habitual y decides observar el entorno con más atención.',
+ 'cartas desde el pasado':'Recuerdas una situación personal que todavía te provoca dudas.',
+ 'conclusión':'Quieres elegir qué ideas de la lectura te resulta útil poner a prueba.',
+ 'danzando con las sombras':'Sientes la presión de seguir una norma social que quizá no encaje contigo.',
+ 'el sueño de los dioses':'Repites una respuesta por costumbre y notas que puedes elegir otra.',
+ 'el mundo espejo':'Has interpretado un comentario de forma negativa sin comprobar su intención.',
+ 'el hacedor de la realidad':'Preparas una meta y quieres combinar imaginación con una acción concreta.',
+ 'el telón':'Estás buscando demasiadas explicaciones para justificar una elección legítima.'
+};
+function contextualExample(item,topic){
+ const context=EXAMPLE_CONTEXT[norm(item.section)]||'Tienes una situación cotidiana pendiente de resolver.';
+ return context+' En vez de actuar inmediatamente, escribes los hechos y realizas este paso: '+topic+' Al terminar, registras qué has hecho y qué has observado, sin exigir que otras personas o circunstancias respondan como deseas.';
+}
 function protocol(item){
  const title=norm(item.title);
  let p=P.find(p=>norm(p.key)===title);
@@ -47,7 +74,7 @@ function protocol(item){
    'Registra cómo ha ido el ensayo y qué cambiarías si lo repitieses en los próximos días.'
  ];
  return {key:item.title,type:base,page:item.page||null,steps,
-   example:item.example||'Por ejemplo, ante una situación cotidiana relacionada con «'+item.title+'», puedes seguir los pasos de esta ficha, ensayar la respuesta descrita y registrar un cambio observable en tus propias acciones.',
+   example:item.example||contextualExample(item,topic),
    caution:'Esta actividad es una adaptación didáctica, no la reproducción literal del libro. No se deben atribuir a los pensamientos enfermedades, accidentes, decisiones ajenas ni otros sucesos fuera de tu control.'};
 }
 function history(){if(Array.isArray(state.rtHistory))return state.rtHistory;try{let v=JSON.parse(localStorage.getItem(KEY)||'[]');if(!Array.isArray(v))v=[];if(v.length){state.rtHistory=v;persist()}return v}catch(e){return []}}
