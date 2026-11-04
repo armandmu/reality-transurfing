@@ -59,7 +59,8 @@ function importData(input){
     v2Done:unique(state.v2Done,incoming.v2Done),
     extraCompleted:unique(state.extraCompleted,incoming.extraCompleted),
     entries:mergedEntries,
-    rtHistory:mergedHistory
+    rtHistory:mergedHistory,
+    rtDrafts:{...(incoming.rtDrafts&&typeof incoming.rtDrafts==='object'?incoming.rtDrafts:{}),...(state.rtDrafts&&typeof state.rtDrafts==='object'?state.rtDrafts:{})}
    };
    persist();
    if(mergedHistory.length)localStorage.setItem('rt-study-history-v3',JSON.stringify(mergedHistory));
