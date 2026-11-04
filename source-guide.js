@@ -54,6 +54,7 @@ function decorate(){
    }
  }
 }
+window.rtSourceDecorate=decorate;
 window.rtSourceAuditOpen=function(){selectedVol=0;view='rtSource';render();window.scrollTo({top:0,behavior:'smooth'})};
 window.rtSourceSetVolume=function(n){selectedVol=Number(n)||0;show()};
 const oldRender=render;
