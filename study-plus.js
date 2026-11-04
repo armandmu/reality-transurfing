@@ -159,7 +159,7 @@ function detail(id){
  const first=[...root.querySelectorAll('h1')][0];if(!first)return;
  const section=document.createElement('section');section.className='rt-enhanced';
  const done=entryList(item.id).length;
- section.innerHTML='<section class="rt-panel"><div class="rt-tag">GUÍA AMPLIADA · VOLUMEN '+item.vol+'</div><h2>'+esc(item.title)+'</h2><p class="rt-type">'+esc(p.type)+(p.page?' · Referencia orientativa: PDF p. '+p.page:'')+'</p><div class="rt-sub">Qué propone el libro</div><p class="rt-reading">'+esc(item.explanation)+'</p><div class="rt-sub">Ejemplo resuelto</div><p class="rt-reading">'+esc(p.example)+'</p><div class="rt-sub">Cómo reconocer que la has practicado</div><p class="rt-reading">Habrás realizado esta actividad cuando puedas identificar el concepto, seguir la secuencia y registrar qué decidiste y observaste. El resultado externo no está garantizado.</p></section>'+
+ section.innerHTML='<details class="rt-panel rt-extra-reading"><summary><strong>Leer más · Ejemplo y explicación complementaria</strong><span>'+esc(p.type)+(p.page?' · PDF p. '+p.page:'')+'</span></summary><div class="rt-sub">Concepto de referencia</div><p class="rt-reading">'+esc(item.explanation)+'</p><div class="rt-sub">Ejemplo de aplicación</div><p class="rt-reading">'+esc(p.example)+'</p><div class="rt-sub">Criterio de realización</div><p class="rt-reading">La práctica consiste en seguir los pasos y observar lo que haces. Los resultados externos no están garantizados.</p></details>'+
  '<section class="rt-panel"><div class="rt-tag">PROTOCOLO DE PRÁCTICA · PASO A PASO</div><h2>Hazlo conmigo</h2><p class="rt-note">Selecciona cada paso cuando lo hayas realizado. Puedes parar y volver a empezar cuando quieras.</p>'+
  p.steps.map((step,i)=>'<label class="rt-step"><input type="checkbox" data-rt-step="'+i+'" onchange="rtStepChanged()"><span><b>Paso '+(i+1)+'</b><span>'+esc(step)+'</span></span></label>').join('')+
  '<div id="rt-step-progress">'+progressBar(0,p.steps.length)+'</div><div class="rt-warning"><b>Qué evitar</b><p>'+esc(p.caution)+'</p></div></section>'+
@@ -168,7 +168,9 @@ function detail(id){
  '<p id="rt-msg" class="rt-note"></p><div class="stack"><button class="btn primary" onclick="rtSave()">Guardar esta sesión</button><button class="btn" id="rt-complete-btn" aria-pressed="'+String(isComplete(item))+'" onclick="rtToggleComplete()">'+(isComplete(item)?'✓ Completada · Desmarcar':'Marcar como completada ✓')+'</button><button class="btn" onclick="rtClearSteps()">Reiniciar pasos</button></div></section>'+
  '<div id="rt-history">'+recordPanel(item.id)+'</div>'+
  related(item);
- first.insertAdjacentElement('afterend',section);
+ const explanation=first.nextElementSibling;
+ if(explanation&&explanation.matches?.('.panel,.v2-panel,.academy3-panel'))explanation.insertAdjacentElement('afterend',section);
+ else first.insertAdjacentElement('afterend',section);
  restoreDraft(item.id);
  const rootTabs=root.querySelector('nav.tabs');if(rootTabs)addIndexButton(rootTabs);
  if(done){const msg=document.getElementById('rt-msg');if(msg)msg.textContent='Ya tienes '+done+' sesiones de esta práctica. Puedes registrar otra sin borrar las anteriores.'}
@@ -271,6 +273,7 @@ window.oracleOpen=function(mode,idx){oldOracle(mode,idx);decorate();if(mode==='c
 const st=document.createElement('style');st.textContent=`
 
 .rt-completion-label{font-weight:600;color:#c9f27e}
+.rt-extra-reading summary{cursor:pointer;display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;color:#c9f27e}.rt-extra-reading summary span{font-size:12px;color:#9fb4c4}.rt-extra-reading[open] summary{margin-bottom:18px}
 .rt-panel{margin:24px 0;padding:25px;border:1px solid #405666;background:linear-gradient(145deg,#1c2b39,#15202d);border-radius:18px}
 .rt-enhanced>.rt-panel:first-child{margin-top:26px}
 .rt-tag{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#c9f27e;font-weight:700;margin-bottom:12px}
