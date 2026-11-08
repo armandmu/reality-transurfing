@@ -90,16 +90,16 @@ assert(localStorage.getItem('transurfing-v1')?.includes('"rtHistory"'),'History 
 const recent=appState.rtHistory[0];
 document.getElementById('rt-review-'+recent.timestamp).value='Revisión posterior';
 window.rtUpdateReview(recent.timestamp);
-assert.equal(appState.rtHistory[0].review,'Revisión posterior');
-assert(appState.entries[0].text.includes('Revisión posterior'));
+assert.equal(vm.runInContext('state.rtHistory[0].review',sandbox),'Revisión posterior');
+assert(vm.runInContext('state.entries[0].text',sandbox).includes('Revisión posterior'));
 const draftKey='v5-0-0';
 window.openVol(5,'lesson',0,0);
 document.getElementById('rt-situation').value='Borrador de prueba';
 window.rtDraftChanged();
-assert.equal(appState.rtDrafts[draftKey].situation,'Borrador de prueba');
+assert.equal(vm.runInContext('state.rtDrafts',sandbox)[draftKey].situation,'Borrador de prueba');
 assert(localStorage.getItem('transurfing-v1')?.includes('Borrador de prueba'));
 // Regression: una copia manipulada nunca debe añadir sesiones ni progreso.
-const beforeInvalid=appState.rtHistory.length;
+const beforeInvalid=vm.runInContext('state.rtHistory.length',sandbox);
 for(const payload of [
  {done:[],fav:[],entries:[],rtHistory:[{id:'v1-p01',timestamp:'0);alert(123)//'}]},
  {done:['FAKE-ID'],fav:[],entries:[]}
