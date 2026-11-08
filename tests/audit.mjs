@@ -16,6 +16,17 @@ const cards=extract(data['oracle.js'],/const CARDS=(\[[\s\S]*?\]);\n/,'Oracle');
 const sources=extract(data['source-guide.js'],/const SOURCES=(\[[\s\S]*?\]);\nconst GLOSSARY/,'Source index');
 const anchors=extract(data['study-plus.js'],/const ORACLE_LESSON_ANCHORS=(\[[\s\S]*?\]);\nconst GUIDE_FALLBACK/,'Oracle links');
 const protocols=extract(data['study-plus.js'],/const P=(\[[\s\S]*?\]);\nconst KEY=/,'Technical guides');
+const aliases=JSON.parse(data['study-plus.js'].match(/const PROTOCOL_ALIASES=(\{[\s\S]*?\});\nconst EXAMPLE_CONTEXT/)[1].replace(/'/g,'"'));
+const simplified=x=>String(x).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9 ]/g,' ').trim();
+for(const b of b345)for(const c of b.chapters)for(const t of c.topics){
+ const name=simplified(t[0]);
+ const p=protocols.find(p=>simplified(p.key)===name)||
+ protocols.find(p=>simplified(p.key).length>=8&&name.includes(simplified(p.key)))||
+ protocols.find(p=>(aliases[p.key]||[]).some(alias=>simplified(alias)===name));
+ assert(p,'Missing specific practical guide for volume '+b.number+' · '+t[0]);
+ assert(p.steps?.length>=4,'Practice guide requires at least four distinct steps: '+t[0]);
+ assert(p.example&&p.caution,'Practice needs example and limits: '+t[0]);
+}
 const counts=[practices.length,v2.reduce((n,c)=>n+c.lessons.length,0),...b345.map(b=>b.chapters.reduce((n,c)=>n+c.topics.length,0))];
 assert.deepEqual(counts,[40,35,34,23,35]);
 assert.equal(Object.keys(JSON.parse(data['fidelity-map.js'].match(/window\.rtFidelityMap=(\{[\s\S]*?\});/)[1])).length,167,'The audit map must cover 167 activities');
