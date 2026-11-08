@@ -96,4 +96,15 @@ document.getElementById('rt-situation').value='Borrador de prueba';
 window.rtDraftChanged();
 assert.equal(appState.rtDrafts[draftKey].situation,'Borrador de prueba');
 assert(localStorage.getItem('transurfing-v1')?.includes('Borrador de prueba'));
+// Regression: una copia manipulada nunca debe añadir sesiones ni progreso.
+const beforeInvalid=appState.rtHistory.length;
+for(const payload of [
+ {done:[],fav:[],entries:[],rtHistory:[{id:'v1-p01',timestamp:'0);alert(123)//'}]},
+ {done:['FAKE-ID'],fav:[],entries:[]}
+]){
+ const input={files:[{size:JSON.stringify(payload).length,text:JSON.stringify(payload)}],value:'test'};
+ sandbox.importData(input);
+ assert.equal(vm.runInContext('state.rtHistory.length',sandbox),beforeInvalid);
+ assert(!vm.runInContext('state.done.includes("FAKE-ID")',sandbox));
+}
 console.log('PASS: all 167 activities, 78 oracle cards, 138 source references, five progress systems, diary, review and draft persistence');
