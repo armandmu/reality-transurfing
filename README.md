@@ -14,6 +14,8 @@ Fuente contrastada: compilación local en español `Reality Transurfing Completo
 
 La auditoría de 8 de noviembre de 2026 inventarió 167 fichas, con **45 cotejos focales y 122 revisiones parciales**; ninguna estaba certificada con una revisión integral frase por frase. Los localizadores en `fidelity-map.js` y los 134 apartados de `original-index.js` permiten consultar los pasajes, pero no deben presentarse como una certificación. No existe aquí cotejo con el manual independiente de las 78 cartas, por lo que sus interpretaciones y pautas siguen etiquetadas como editoriales.
 
+La revisión posterior incorporó 40 protocolos diferenciados nuevos para los volúmenes III–V y enlaces internos desde las 134 subsecciones del índice original. **[Informe actualizado de cobertura, pruebas y límites editoriales](AUDITORIA.md).**
+
 ## Ejecución local
 
 Abrir `index.html` en un navegador moderno o servir la carpeta con un servidor estático. Las rutas internas usan fragmentos `#`, compatibles con GitHub Pages. No hay backend propio. Los datos privados del diario se guardan en el almacenamiento local del navegador, no se envían a un servidor de la aplicación.
