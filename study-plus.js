@@ -246,8 +246,9 @@ window.rtToggleFav=function(){
  const item=items().find(i=>i.id===current);
  if(!item||item.vol!==1)return;
  const id=item.id.slice(3),next=state.fav.includes(id);
- state.fav=next?state.fav.filter(x=>x!==id):[...state.fav,id];
- persist();
+ const candidate={...state,fav:next?state.fav.filter(x=>x!==id):[...state.fav,id]};
+ try{localStorage.setItem('transurfing-v1',JSON.stringify(candidate));state=candidate}
+ catch(e){const msg=document.getElementById('rt-msg');if(msg)msg.textContent='No se ha podido guardar la favorita; revisa el almacenamiento.';return}
  const b=document.getElementById('rt-fav-btn');
  if(b){b.textContent=next?'☆ Guardar favorita':'★ Favorita · Quitar';b.setAttribute('aria-pressed',String(!next))}
 };
@@ -262,17 +263,22 @@ window.rtClearSteps=function(){
 window.rtUpdateReview=function(timestamp){
  const item=items().find(i=>i.id===current);if(!item)return;
  const el=document.getElementById('rt-review-'+timestamp);if(!el)return;
- const next=el.value.trim(),rows=history(),record=rows.find(x=>x.id===item.id&&x.timestamp===timestamp);
- if(!record)return;
- record.review=next;state.rtHistory=rows;
- const matching=state.entries?.find(x=>x.rtSessionKey===item.id+'-'+timestamp);
- if(matching){
-   matching.fields={...(matching.fields||{}),revision:next};
-   matching.text='Situación: '+record.situation+'\n\nObservación: '+record.observation+'\n\nAcción: '+record.action+'\n\nRevisión: '+next;
- }
- persist();localStorage.setItem(KEY,JSON.stringify(rows));
+ const next=el.value.trim(),existing=history();
+ const record=existing.find(x=>x.id===item.id&&x.timestamp===timestamp);if(!record)return;
+ const updated={...record,review:next};
+ const rows=existing.map(x=>x===record?updated:x);
+ const entries=(state.entries||[]).map(e=>{
+  if(e.rtSessionKey!==item.id+'-'+timestamp)return e;
+  return {...e,fields:{...(e.fields||{}),revision:next},text:'Situación: '+updated.situation+'\n\nObservación: '+updated.observation+'\n\nAcción: '+updated.action+'\n\nRevisión: '+next}
+ });
+ const candidate={...state,rtHistory:rows,entries};
+ const msg=document.getElementById('rt-msg');
+ try{localStorage.setItem('transurfing-v1',JSON.stringify(candidate))}
+ catch(e){if(msg)msg.textContent='No se ha podido guardar esta revisión. Conserva el texto e inténtalo tras liberar espacio.';return}
+ state=candidate;
+ try{localStorage.setItem(KEY,JSON.stringify(rows))}catch(e){/* El historial canónico ya se guardó. */}
  document.getElementById('rt-history').innerHTML=recordPanel(item.id);
- const msg=document.getElementById('rt-msg');if(msg)msg.textContent='Revisión actualizada y guardada.';
+ if(msg)msg.textContent='Revisión actualizada y guardada.';
 };
 window.rtSave=function(){
  const id=current,item=items().find(x=>x.id===id);if(!item)return;
