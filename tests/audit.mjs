@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
-const files=['index.html','oracle.js','volume2.js','volumes345.js','study-plus.js','source-guide.js'];
+const files=['index.html','oracle.js','volume2.js','volumes345.js','fidelity-map.js','study-plus.js','source-guide.js'];
 const data=Object.fromEntries(files.map(f=>[f,fs.readFileSync(f,'utf8').replace(/\r\n/g,'\n')]));
 const inline=data['index.html'].match(/<script>([\s\S]*?)<\/script>/)?.[1];
 assert(inline,'Missing inline app');
@@ -18,6 +18,7 @@ const anchors=extract(data['study-plus.js'],/const ORACLE_LESSON_ANCHORS=(\[[\s\
 const protocols=extract(data['study-plus.js'],/const P=(\[[\s\S]*?\]);\nconst KEY=/,'Technical guides');
 const counts=[practices.length,v2.reduce((n,c)=>n+c.lessons.length,0),...b345.map(b=>b.chapters.reduce((n,c)=>n+c.topics.length,0))];
 assert.deepEqual(counts,[40,35,34,23,35]);
+assert.equal(Object.keys(JSON.parse(data['fidelity-map.js'].match(/window\.rtFidelityMap=(\{[\s\S]*?\});/)[1])).length,167,'The audit map must cover 167 activities');
 assert.equal(cards.length,78);
 assert.equal(new Set(cards.map(c=>c.id)).size,78);
 assert.equal(anchors.length,78);
