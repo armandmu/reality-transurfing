@@ -110,7 +110,15 @@ function restoreDraft(id){
  if(p)p.innerHTML=progressBar(count,inputs.length);
 }
 
-function store(entry){let a=history();a.unshift(entry);state.rtHistory=a;persist();localStorage.setItem(KEY,JSON.stringify(a))}
+function store(entry){
+ const previousHistory=history().slice(),previousEntries=Array.isArray(state.entries)?state.entries.slice():[];
+ const nextHistory=[entry,...previousHistory];
+ const nextEntry={id:entry.id,rtSessionKey:entry.id+'-'+entry.timestamp,title:'Volumen '+entry.vol+' · '+entry.title,date:entry.date,fields:{situacion:entry.situation,observacion:entry.observation,accion:entry.action,revision:entry.review},text:'Situación: '+entry.situation+'\n\nObservación: '+entry.observation+'\n\nAcción: '+entry.action+'\n\nRevisión: '+entry.review};
+ state.rtHistory=nextHistory;state.entries=[nextEntry,...previousEntries];
+ try{persist()}catch(e){state.rtHistory=previousHistory;state.entries=previousEntries;return false}
+ try{localStorage.setItem(KEY,JSON.stringify(nextHistory))}catch(e){/* La copia canónica ya está guardada en state. */}
+ return true;
+}
 function isComplete(item){
  if(!item)return false;
  if(item.vol===1)return Array.isArray(state.done)&&state.done.includes(item.id.replace(/^v1-/,''));
@@ -227,13 +235,13 @@ window.rtSave=function(){
  const values={};for(const k of ['situation','observation','action','review'])values[k]=document.getElementById('rt-'+k)?.value.trim()||'';
  if(!Object.values(values).some(Boolean)){document.getElementById('rt-msg').textContent='Escribe al menos una respuesta para guardar esta sesión.';return}
  const entry={...values,id,vol:item.vol,title:item.title,timestamp:Date.now(),date:new Date().toLocaleString('es-ES')};
- store(entry);
+ if(!store(entry)){document.getElementById('rt-msg').textContent='No se ha podido guardar: almacenamiento lleno o bloqueado. Tus respuestas siguen en pantalla; exporta una copia y libera espacio antes de continuar.';return}
  const checked=[...document.querySelectorAll('[data-rt-step]')];
  if(checked.length&&checked.every(x=>x.checked)){
    setComplete(item,true);
    const button=document.getElementById('rt-complete-btn');if(button){button.textContent='✓ Completada · Desmarcar';button.setAttribute('aria-pressed','true')}
  }
- if(Array.isArray(state.entries)){state.entries.unshift({id,rtSessionKey:item.id+'-'+entry.timestamp,title:'Volumen '+item.vol+' · '+item.title,date:entry.date,fields:{situacion:values.situation,observacion:values.observation,accion:values.action,revision:values.review},text:'Situación: '+values.situation+'\n\nObservación: '+values.observation+'\n\nAcción: '+values.action+'\n\nRevisión: '+values.review});persist()}
+ // Historial y entrada del diario se guardaron juntos en store(entry).
  document.getElementById('rt-msg').textContent='Sesión guardada. Puedes volver mañana para registrar otra y comparar.';
  for(const k of ['situation','observation','action','review'])document.getElementById('rt-'+k).value='';
  document.getElementById('rt-history').innerHTML=recordPanel(id);
