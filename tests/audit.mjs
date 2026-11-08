@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
-const files=['index.html','oracle.js','volume2.js','volumes345.js','study-plus.js','source-guide.js'];
+const files=['index.html','oracle.js','volume2.js','volumes345.js','fidelity-map.js','study-plus.js','original-index.js','source-guide.js'];
 const data=Object.fromEntries(files.map(f=>[f,fs.readFileSync(f,'utf8').replace(/\r\n/g,'\n')]));
 const inline=data['index.html'].match(/<script>([\s\S]*?)<\/script>/)?.[1];
 assert(inline,'Missing inline app');
@@ -18,6 +18,8 @@ const anchors=extract(data['study-plus.js'],/const ORACLE_LESSON_ANCHORS=(\[[\s\
 const protocols=extract(data['study-plus.js'],/const P=(\[[\s\S]*?\]);\nconst KEY=/,'Technical guides');
 const counts=[practices.length,v2.reduce((n,c)=>n+c.lessons.length,0),...b345.map(b=>b.chapters.reduce((n,c)=>n+c.topics.length,0))];
 assert.deepEqual(counts,[40,35,34,23,35]);
+assert.equal(Object.keys(JSON.parse(data['fidelity-map.js'].match(/window\.rtFidelityMap=(\{[\s\S]*?\});/)[1])).length,167,'The audit map must cover 167 activities');
+assert.equal(JSON.parse(data['original-index.js'].match(/window\.rtOriginalIndex=(\[[\s\S]*?\]);/)[1]).length,134,'Original PDF index must contain 134 source subsections');
 assert.equal(cards.length,78);
 assert.equal(new Set(cards.map(c=>c.id)).size,78);
 assert.equal(anchors.length,78);
@@ -56,7 +58,7 @@ class FileReader{readAsText(file){this.result=file.text;this.onload?.()}}
 const window={scrollTo(){}};
 const sandbox=vm.createContext({document,window,localStorage,FileReader,clearInterval(){},setInterval(){return 1},setTimeout(){},alert(){},Date,Blob:class{},console});
 for(const src of [inline,...files.slice(1).map(f=>data[f])])vm.runInContext(src,sandbox);
-const appState=vm.runInContext('state',sandbox);
+const getState=()=>vm.runInContext('state',sandbox);
 const visit=(label,fn)=>{fn();assert(rendered.length>300,'Empty screen: '+label)};
 visit('Home',()=>sandbox.app('inicio'));
 visit('Source index',()=>window.rtSourceAuditOpen());
@@ -79,25 +81,25 @@ for(const [label,go] of [
  for(const f of ['situation','observation','action','review'])document.getElementById('rt-'+f).value=f==='situation'?'Ejemplo de práctica':f;
  window.rtSave();
 }
-assert.equal(appState.rtHistory.length,5);
-assert.equal(appState.entries.length,5);
-assert.equal(appState.done.length,1);
-assert.equal(appState.v2Done.length,1);
-assert.equal(appState.extraCompleted.length,3);
+assert.equal(getState().rtHistory.length,5);
+assert.equal(getState().entries.length,5);
+assert.equal(getState().done.length,1);
+assert.equal(getState().v2Done.length,1);
+assert.equal(getState().extraCompleted.length,3);
 assert(localStorage.getItem('transurfing-v1')?.includes('"rtHistory"'),'History not included in backup');
-const recent=appState.rtHistory[0];
+const recent=getState().rtHistory[0];
 document.getElementById('rt-review-'+recent.timestamp).value='Revisión posterior';
 window.rtUpdateReview(recent.timestamp);
-assert.equal(appState.rtHistory[0].review,'Revisión posterior');
-assert(appState.entries[0].text.includes('Revisión posterior'));
+assert.equal(vm.runInContext('state.rtHistory[0].review',sandbox),'Revisión posterior');
+assert(vm.runInContext('state.entries[0].text',sandbox).includes('Revisión posterior'));
 const draftKey='v5-0-0';
 window.openVol(5,'lesson',0,0);
 document.getElementById('rt-situation').value='Borrador de prueba';
 window.rtDraftChanged();
-assert.equal(appState.rtDrafts[draftKey].situation,'Borrador de prueba');
+assert.equal(vm.runInContext('state.rtDrafts',sandbox)[draftKey].situation,'Borrador de prueba');
 assert(localStorage.getItem('transurfing-v1')?.includes('Borrador de prueba'));
 // Regression: una copia manipulada nunca debe añadir sesiones ni progreso.
-const beforeInvalid=appState.rtHistory.length;
+const beforeInvalid=vm.runInContext('state.rtHistory.length',sandbox);
 for(const payload of [
  {done:[],fav:[],entries:[],rtHistory:[{id:'v1-p01',timestamp:'0);alert(123)//'}]},
  {done:['FAKE-ID'],fav:[],entries:[]}
