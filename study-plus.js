@@ -195,6 +195,7 @@ function detail(id){
  current=item.id;
  if(root.querySelector('.rt-enhanced'))return;
  const p=protocol(item);
+ const source=window.rtFidelityMap?.[item.id];
  const headings=[...root.querySelectorAll('h2,.v2-label')];
  for(const h of headings){
    const t=norm(h.textContent);
@@ -212,8 +213,9 @@ function detail(id){
  const first=[...root.querySelectorAll('h1')][0];if(!first)return;
  const section=document.createElement('section');section.className='rt-enhanced';
  const done=entryList(item.id).length;
- section.innerHTML='<details class="rt-panel rt-extra-reading"><summary><strong>Leer más · Ejemplo y explicación complementaria</strong><span>'+esc(p.type)+(p.page?' · PDF p. '+p.page:'')+'</span></summary><div class="rt-sub">Concepto de referencia</div><p class="rt-reading">'+esc(item.explanation)+'</p><div class="rt-sub">Ejemplo de aplicación</div><p class="rt-reading">'+esc(p.example)+'</p><div class="rt-sub">Criterio de realización</div><p class="rt-reading">La práctica consiste en seguir los pasos y observar lo que haces. Los resultados externos no están garantizados.</p></details>'+
- '<section class="rt-panel"><div class="rt-tag">PROTOCOLO DE PRÁCTICA · PASO A PASO</div><h2>Hazlo conmigo</h2><p class="rt-note">Selecciona cada paso cuando lo hayas realizado. Puedes parar y volver a empezar cuando quieras.</p>'+
+ section.innerHTML='<details class="rt-panel rt-extra-reading"><summary><strong>Leer más · Ejemplo y explicación complementaria</strong><span>'+esc(p.type)+(source?.pages?' · PDF pp. '+esc(source.pages):' · referencia por verificar')+'</span></summary><div class="rt-sub">Explicación editorial de la Academia</div><p class="rt-reading">'+esc(item.explanation)+'</p><div class="rt-sub">Ejemplo de aplicación</div><p class="rt-reading">'+esc(p.example)+'</p><div class="rt-sub">Criterio de realización</div><p class="rt-reading">La práctica consiste en seguir los pasos y observar lo que haces. Los resultados externos no están garantizados.</p></details>'+
+ '<section class="rt-panel"><div class="rt-tag">REFERENCIA DEL LIBRO</div><p class="rt-reading">'+(source?'Volumen '+source.vol+' · '+esc(source.chapter)+' · páginas físicas del PDF '+esc(source.pages):'Localizador todavía pendiente de verificar')+'</p><p class="rt-note">Correspondencia temática de la auditoría. El contraste integral de teoría, pasos y ejemplos está pendiente; esta referencia no valida automáticamente las instrucciones adaptadas.</p></section>'+ 
+ '<section class="rt-panel"><div class="rt-tag">PROTOCOLO ADAPTADO · PASO A PASO</div><h2>Hazlo conmigo</h2><p class="rt-note">Selecciona cada paso cuando lo hayas realizado. Puedes parar y volver a empezar cuando quieras.</p>'+
  p.steps.map((step,i)=>'<label class="rt-step"><input type="checkbox" data-rt-step="'+i+'" onchange="rtStepChanged()"><span><b>Paso '+(i+1)+'</b><span>'+esc(step)+'</span></span></label>').join('')+
  '<div id="rt-step-progress">'+progressBar(0,p.steps.length)+'</div><div class="rt-warning"><b>Qué evitar</b><p>'+esc(p.caution)+'</p></div></section>'+
  '<section class="rt-panel"><div class="rt-tag">DIARIO Y SEGUIMIENTO</div><h2>Tu sesión de hoy</h2><p class="rt-note">Puedes repetir esta práctica tantas veces como necesites y comparar lo que anotas en días distintos.</p>'+
