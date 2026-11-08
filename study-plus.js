@@ -19,7 +19,7 @@ function matches(p,title){
 }
 const PROTOCOL_ALIASES={
  'paso de intención':['Paso de la intención'],
- 'freiling':['Freile','Intención de las relaciones'],
+ 'freiling':['Intención de las relaciones'],
  'diapositiva del objetivo':['Visualización del objetivo','Diapositivas positivas'],
  'flujo de energía':['Incrementar tu energía','Energía libre e intención'],
  'marco':['Frame','Marco de intención'],
@@ -60,6 +60,19 @@ const AUTHOR_TECHNIQUES=new Set(['transacción','capa protectora','incrementar t
 function kindOf(item){return AUTHOR_TECHNIQUES.has(norm(item.title))?'Técnica descrita en el libro · guía adaptada':'Ejercicio didáctico de la Academia'}
 function protocol(item){
  const title=norm(item.title);
+ // Freile describe la singularidad personal; Freiling trabaja las relaciones.
+ if(item.vol===2&&title==='freile')return {
+  key:'Freile',type:'Ejercicio didáctico de la Academia',page:item.page||null,
+  steps:['Lee la descripción del freile como cualidad singular del alma dentro del modelo de Zeland.','Escribe tus intereses y preferencias personales sin compararte con otros.','Separa tus decisiones propias de aquellas motivadas por expectativas externas.','Elige una acción pequeña coherente con esas preferencias y registra lo observado.'],
+  example:'Al elegir un proyecto, valoras cuál encaja mejor con tus intereses y circunstancias, en vez de buscar únicamente aprobación externa.',
+  caution:'Adaptación didáctica. La explicación energética del freile pertenece al modelo metafísico de Zeland.'
+ };
+ if(item.vol===5&&title==='diapositiva y proceso')return {
+  key:'Diapositiva y proceso',type:'Técnica descrita en el libro · guía adaptada',
+  steps:['Representa brevemente la meta que quieres alcanzar: la diapositiva del objetivo.','Identifica un paso próximo y verificable del camino hacia esa meta.','Visualiza cómo realizas ese paso concreto del proceso, atendiendo a tus acciones.','Realiza un paso posible y registra el resultado observado y lo que ajustarás.'],
+  example:'Para terminar un proyecto imaginas el resultado deseado, visualizas cómo preparas la tarea de hoy y luego empiezas con una acción concreta.',
+  caution:'Adaptación de la distinción entre visualizar la meta y visualizar el proceso; no garantiza resultados externos.'
+ };
  let p=P.find(p=>norm(p.key)===title);
  if(!p)p=P.filter(p=>norm(p.key).length>=8&&title.includes(norm(p.key))).sort((a,b)=>b.key.length-a.key.length)[0];
  if(!p)p=P.find(p=>(PROTOCOL_ALIASES[p.key]||[]).some(t=>norm(t)===title));
@@ -86,7 +99,7 @@ function saveDraft(){
  if(!current)return;
  const data={steps:[...document.querySelectorAll('[data-rt-step]')].map(x=>!!x.checked),date:Date.now()};
  for(const k of ['situation','observation','action','review'])data[k]=document.getElementById('rt-'+k)?.value||'';
- state.rtDrafts={...(state.rtDrafts||{}),[current]:data};persist();
+ state.rtDrafts={...(state.rtDrafts||{}),[current]:data};try{persist()}catch(e){const msg=document.getElementById('rt-msg');if(msg)msg.textContent='No se ha podido guardar el borrador en este navegador. Conserva el texto y exporta una copia antes de cerrar la página.';}
 }
 window.rtDraftChanged=function(){saveDraft()};
 function restoreDraft(id){
@@ -97,7 +110,15 @@ function restoreDraft(id){
  if(p)p.innerHTML=progressBar(count,inputs.length);
 }
 
-function store(entry){let a=history();a.unshift(entry);state.rtHistory=a;persist();localStorage.setItem(KEY,JSON.stringify(a))}
+function store(entry){
+ const previousHistory=history().slice(),previousEntries=Array.isArray(state.entries)?state.entries.slice():[];
+ const nextHistory=[entry,...previousHistory];
+ const nextEntry={id:entry.id,rtSessionKey:entry.id+'-'+entry.timestamp,title:'Volumen '+entry.vol+' · '+entry.title,date:entry.date,fields:{situacion:entry.situation,observacion:entry.observation,accion:entry.action,revision:entry.review},text:'Situación: '+entry.situation+'\n\nObservación: '+entry.observation+'\n\nAcción: '+entry.action+'\n\nRevisión: '+entry.review};
+ state.rtHistory=nextHistory;state.entries=[nextEntry,...previousEntries];
+ try{persist()}catch(e){state.rtHistory=previousHistory;state.entries=previousEntries;return false}
+ try{localStorage.setItem(KEY,JSON.stringify(nextHistory))}catch(e){/* La copia canónica ya está guardada en state. */}
+ return true;
+}
 function isComplete(item){
  if(!item)return false;
  if(item.vol===1)return Array.isArray(state.done)&&state.done.includes(item.id.replace(/^v1-/,''));
@@ -123,7 +144,7 @@ function recordPanel(id){
  const rows=entryList(id),latest=rows.slice(0,2),count=rows.length;
  return '<section class="rt-panel rt-record"><div class="rt-tag">REPETICIÓN Y COMPARACIÓN</div><h3>'+count+' '+(count===1?'sesión registrada':'sesiones registradas')+'</h3>'+
  (count?' <p class="rt-note">Tus sesiones quedan guardadas en este navegador y también se reflejan en el diario general.</p>':'<p class="rt-note">Cuando completes tu primer ensayo aparecerá aquí. Puedes repetir cualquier técnica sin perder la anterior.</p>')+
- (latest.length?'<div class="rt-compare">'+latest.map((r,i)=>'<div class="rt-compareitem"><small>'+(i===0?'Última sesión':'Sesión anterior')+' · '+esc(r.date)+'</small><p><b>Situación</b> '+esc(r.situation||'—')+'</p><p><b>Observación</b> '+esc(r.observation||'—')+'</p><p><b>Acción</b> '+esc(r.action||'—')+'</p><p><b>Revisión</b> '+esc(r.review||'Pendiente de revisión')+'</p><label class="rt-review-label" for="rt-review-'+r.timestamp+'">Actualizar la revisión</label><textarea id="rt-review-'+r.timestamp+'" rows="2" placeholder="¿Qué ocurrió después?">'+esc(r.review||'')+'</textarea><button class="btn" onclick="rtUpdateReview('+r.timestamp+')">Guardar revisión</button></div>').join('')+'</div>':'')+
+ (latest.length?'<div class="rt-compare">'+latest.map((r,i)=>'<div class="rt-compareitem"><small>'+(i===0?'Última sesión':'Sesión anterior')+' · '+esc(r.date)+'</small><p><b>Situación</b> '+esc(r.situation||'—')+'</p><p><b>Observación</b> '+esc(r.observation||'—')+'</p><p><b>Acción</b> '+esc(r.action||'—')+'</p><p><b>Revisión</b> '+esc(r.review||'Pendiente de revisión')+'</p><label class="rt-review-label" for="rt-review-'+Number(r.timestamp)+'">Actualizar la revisión</label><textarea id="rt-review-'+r.timestamp+'" rows="2" placeholder="¿Qué ocurrió después?">'+esc(r.review||'')+'</textarea><button class="btn" onclick="rtUpdateReview('+Number(r.timestamp)+')">Guardar revisión</button></div>').join('')+'</div>':'')+
  (count>2?'<details class="rt-old"><summary>Ver todas las sesiones ('+count+')</summary>'+rows.slice(2).map(r=>'<div class="rt-oldentry"><small>'+esc(r.date)+'</small><p>'+esc(r.situation||r.observation||r.action||'Registro')+'</p></div>').join('')+'</details>':'')+'</section>';
 }
 function related(item){
@@ -167,7 +188,7 @@ function detail(id){
  '<div id="rt-step-progress">'+progressBar(0,p.steps.length)+'</div><div class="rt-warning"><b>Qué evitar</b><p>'+esc(p.caution)+'</p></div></section>'+
  '<section class="rt-panel"><div class="rt-tag">DIARIO Y SEGUIMIENTO</div><h2>Tu sesión de hoy</h2><p class="rt-note">Puedes repetir esta práctica tantas veces como necesites y comparar lo que anotas en días distintos.</p>'+
  [['situation','¿Qué situación concreta has elegido?'],['observation','¿Qué has observado al practicar?'],['action','¿Qué acción realizarás en las próximas 24 horas?'],['review','¿Qué resultado has podido comprobar? (opcional)']].map(x=>'<div class="rt-field"><label for="rt-'+x[0]+'">'+x[1]+'</label><textarea id="rt-'+x[0]+'" rows="3" oninput="rtDraftChanged()"></textarea></div>').join('')+
- '<p id="rt-msg" class="rt-note"></p><div class="stack"><button class="btn primary" onclick="rtSave()">Guardar esta sesión</button><button class="btn" id="rt-complete-btn" aria-pressed="'+String(isComplete(item))+'" onclick="rtToggleComplete()">'+(isComplete(item)?'✓ Completada · Desmarcar':'Marcar como completada ✓')+'</button><button class="btn" onclick="rtClearSteps()">Reiniciar pasos</button></div></section>'+
+ '<p id="rt-msg" class="rt-note" role="status" aria-live="polite"></p><div class="stack"><button class="btn primary" onclick="rtSave()">Guardar esta sesión</button>'+(item.vol===1?'<button class="btn" id="rt-fav-btn" aria-pressed="'+String(state.fav.includes(item.id.slice(3)))+'" onclick="rtToggleFav()">'+(state.fav.includes(item.id.slice(3))?'★ Favorita · Quitar':'☆ Guardar favorita')+'</button>':'')+'<button class="btn" id="rt-complete-btn" aria-pressed="'+String(isComplete(item))+'" onclick="rtToggleComplete()">'+(isComplete(item)?'✓ Completada · Desmarcar':'Marcar como completada ✓')+'</button><button class="btn" onclick="rtClearSteps()">Reiniciar pasos</button></div></section>'+
  '<div id="rt-history">'+recordPanel(item.id)+'</div>'+
  related(item);
  const explanation=first.nextElementSibling;
@@ -177,6 +198,15 @@ function detail(id){
  const rootTabs=root.querySelector('nav.tabs');if(rootTabs)addIndexButton(rootTabs);
  if(done){const msg=document.getElementById('rt-msg');if(msg)msg.textContent='Ya tienes '+done+' sesiones de esta práctica. Puedes registrar otra sin borrar las anteriores.'}
 }
+window.rtToggleFav=function(){
+ const item=items().find(i=>i.id===current);
+ if(!item||item.vol!==1)return;
+ const id=item.id.slice(3),next=state.fav.includes(id);
+ state.fav=next?state.fav.filter(x=>x!==id):[...state.fav,id];
+ persist();
+ const b=document.getElementById('rt-fav-btn');
+ if(b){b.textContent=next?'☆ Guardar favorita':'★ Favorita · Quitar';b.setAttribute('aria-pressed',String(!next))}
+};
 window.rtStepChanged=function(){
  const inputs=[...document.querySelectorAll('[data-rt-step]')],n=inputs.filter(x=>x.checked).length,place=document.getElementById('rt-step-progress');
  if(place)place.innerHTML=progressBar(n,inputs.length);
@@ -205,13 +235,13 @@ window.rtSave=function(){
  const values={};for(const k of ['situation','observation','action','review'])values[k]=document.getElementById('rt-'+k)?.value.trim()||'';
  if(!Object.values(values).some(Boolean)){document.getElementById('rt-msg').textContent='Escribe al menos una respuesta para guardar esta sesión.';return}
  const entry={...values,id,vol:item.vol,title:item.title,timestamp:Date.now(),date:new Date().toLocaleString('es-ES')};
- store(entry);
+ if(!store(entry)){document.getElementById('rt-msg').textContent='No se ha podido guardar: almacenamiento lleno o bloqueado. Tus respuestas siguen en pantalla; exporta una copia y libera espacio antes de continuar.';return}
  const checked=[...document.querySelectorAll('[data-rt-step]')];
  if(checked.length&&checked.every(x=>x.checked)){
    setComplete(item,true);
    const button=document.getElementById('rt-complete-btn');if(button){button.textContent='✓ Completada · Desmarcar';button.setAttribute('aria-pressed','true')}
  }
- if(Array.isArray(state.entries)){state.entries.unshift({id,rtSessionKey:item.id+'-'+entry.timestamp,title:'Volumen '+item.vol+' · '+item.title,date:entry.date,fields:{situacion:values.situation,observacion:values.observation,accion:values.action,revision:values.review},text:'Situación: '+values.situation+'\n\nObservación: '+values.observation+'\n\nAcción: '+values.action+'\n\nRevisión: '+values.review});persist()}
+ // Historial y entrada del diario se guardaron juntos en store(entry).
  document.getElementById('rt-msg').textContent='Sesión guardada. Puedes volver mañana para registrar otra y comparar.';
  for(const k of ['situation','observation','action','review'])document.getElementById('rt-'+k).value='';
  document.getElementById('rt-history').innerHTML=recordPanel(id);
@@ -223,13 +253,13 @@ function addIndexButton(nav){
  nav.appendChild(b);
 }
 window.rtIndexOpen=function(){view='rtInventory';inventoryTerm='';inventoryVolume='all';inventoryType='all';render();window.scrollTo({top:0,behavior:'smooth'})};
-window.rtIndexFilter=function(q,v,t){inventoryTerm=q||'';inventoryVolume=v||'all';inventoryType=t||'all';const cursor=document.getElementById('rt-q')?.selectionStart??(q||'').length;inventory();const input=document.getElementById('rt-q');if(input){input.focus();input.setSelectionRange(cursor,cursor)}};
+window.rtIndexFilter=function(q,v,t){const focused=document.activeElement?.id;inventoryTerm=q||'';inventoryVolume=v||'all';inventoryType=t||'all';const cursor=document.getElementById('rt-q')?.selectionStart??(q||'').length;inventory();const target=document.getElementById(focused==='rt-v'||focused==='rt-t'?focused:'rt-q');if(target){target.focus();if(target.id==='rt-q')target.setSelectionRange(cursor,cursor)}};
 function inventory(){
  const root=document.getElementById('root'),all=items(),shown=all.filter(x=>(inventoryVolume==='all'||x.vol===Number(inventoryVolume))&&(inventoryType==='all'||(inventoryType==='original')===kindOf(x).startsWith('Técnica'))&&norm(x.title+' '+x.section+' '+x.explanation).includes(norm(inventoryTerm)));
  const practiced=all.filter(x=>entryList(x.id).length).length;
  root.innerHTML='<button class="back" onclick="app(\'inicio\')">← Volver a la Academia</button><div class="eyebrow">Índice de aprendizaje · Todos los volúmenes</div><h1>Mapa de aprendizaje y técnicas.</h1><p class="lead">Un índice de las actividades disponibles, con acceso a los protocolos, ejemplos y conexiones entre libros. Distingue las técnicas explicadas por Zeland de nuestras adaptaciones didácticas.</p>'+
  '<section class="rt-panel"><div class="rt-statline"><b>'+all.length+' actividades</b><b>'+practiced+' con sesiones registradas</b><b>5 volúmenes</b></div><p class="rt-note">Este índice enumera las actividades de la Academia. No certifica que reproduzcan todos los procedimientos literales del libro.</p></section>'+
- '<div class="rt-filters"><input type="search" id="rt-q" placeholder="Busca un concepto o técnica..." value="'+esc(inventoryTerm)+'" oninput="rtIndexFilter(this.value,document.getElementById(\'rt-v\').value,document.getElementById(\'rt-t\').value)"><select id="rt-v" onchange="rtIndexFilter(document.getElementById(\'rt-q\').value,this.value,document.getElementById(\'rt-t\').value)">'+[['all','Todos los volúmenes'],['1','Volumen I'],['2','Volumen II'],['3','Volumen III'],['4','Volumen IV'],['5','Volumen V']].map(x=>'<option value="'+x[0]+'" '+(inventoryVolume===x[0]?'selected':'')+'>'+x[1]+'</option>').join('')+'</select><select id="rt-t" aria-label="Tipo de actividad" onchange="rtIndexFilter(document.getElementById(\'rt-q\').value,document.getElementById(\'rt-v\').value,this.value)"><option value="all" '+(inventoryType==='all'?'selected':'')+'>Todas las actividades</option><option value="original" '+(inventoryType==='original'?'selected':'')+'>Técnicas descritas en el libro</option><option value="didactic" '+(inventoryType==='didactic'?'selected':'')+'>Ejercicios didácticos</option></select></div>'+
+ '<div class="rt-filters"><input type="search" id="rt-q" aria-label="Buscar un concepto o técnica" placeholder="Busca un concepto o técnica..." value="'+esc(inventoryTerm)+'" oninput="rtIndexFilter(this.value,document.getElementById(\'rt-v\').value,document.getElementById(\'rt-t\').value)"><select id="rt-v" aria-label="Filtrar por volumen" onchange="rtIndexFilter(document.getElementById(\'rt-q\').value,this.value,document.getElementById(\'rt-t\').value)">'+[['all','Todos los volúmenes'],['1','Volumen I'],['2','Volumen II'],['3','Volumen III'],['4','Volumen IV'],['5','Volumen V']].map(x=>'<option value="'+x[0]+'" '+(inventoryVolume===x[0]?'selected':'')+'>'+x[1]+'</option>').join('')+'</select><select id="rt-t" aria-label="Tipo de actividad" onchange="rtIndexFilter(document.getElementById(\'rt-q\').value,document.getElementById(\'rt-v\').value,this.value)"><option value="all" '+(inventoryType==='all'?'selected':'')+'>Todas las actividades</option><option value="original" '+(inventoryType==='original'?'selected':'')+'>Técnicas descritas en el libro</option><option value="didactic" '+(inventoryType==='didactic'?'selected':'')+'>Ejercicios didácticos</option></select></div>'+
  '<p class="rt-note">'+shown.length+' resultados</p><div class="rt-index-grid">'+shown.map(x=>{let p=protocol(x),n=entryList(x.id).length;return '<button class="rt-index-card" onclick="'+x.open+'"><small>VOL. '+x.vol+' · '+esc(x.section)+'</small><strong>'+esc(x.title)+'</strong><span>'+esc(p.type)+' · '+n+' sesiones</span></button>'}).join('')+'</div>'+
  '<nav class="tabs"><button class="tab" onclick="app(\'inicio\')">Inicio</button><button class="tab active">Mapa de técnicas</button><button class="tab" onclick="app(\'diario\')">Diario</button><button class="tab" onclick="oracleOpen(\'inicio\')">Oráculo</button></nav>';
 }
