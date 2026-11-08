@@ -27,12 +27,42 @@ function chapters(){
  return books.map(b=>'<section class="rt-source-book"><h2>Volumen '+b.n+' · '+escSource(b.title)+'</h2>'+
  b.chapters.map(c=>'<details class="rt-source-chapter"><summary><strong>'+escSource(c[0])+'</strong><span>PDF pp. '+c[1]+'–'+c[2]+' · '+c[3].length+' referencias</span></summary><div class="rt-source-topics">'+c[3].map(t=>'<div class="rt-source-topic"><span>'+escSource(t[0])+'</span>'+linkTo(t[1],b.n)+'</div>').join('')+'</div></details>').join('')+'</section>').join('');
 }
+const INDEX_ALIASES={
+ '1|soluciones simples para problemas complicados':'Retirada suave',
+ '1|el estado suspendido':'Mi péndulo elegido',
+ '1|la trasmision':'Transmitir un buen estado',
+ '1|rituales magicos':'Ritual de inicio consciente',
+ '1|potencial excesivo':'Detector de importancia',
+ '1|descontento y juicio':'Aceptar y soltar',
+ '1|sentirse culpable':'Culpa o responsabilidad',
+ '1|el cambio de generaciones':'Historia o pronóstico',
+ '1|desastre':'Ante noticias alarmantes',
+ '2|espejismo':'Espejismos',
+ '4|la ley de la mala suerte':'El juego de las sombras',
+ '4|todo sucede en tu contra':'Polarización y opuestos',
+ '4|estabilizando la estructura':'Ruptura del guion colectivo',
+ '4|los dos aspectos de la realidad':'El mundo como escena',
+ '4|sonar despierto':'Despertar en el juego',
+ '4|hijos de dios':'Intención consciente y libertad',
+ '4|el teatro del sueno':'El mundo como escena',
+ '5|el mundo se esta moviendo hacia ti':'Quinto principio: orientar la imagen',
+ '5|limpiando el mundo':'Limpiar la capa del mundo',
+ '5|visitando la eternidad':'Declaración final del hacedor'
+};
+function indexLink(entry){
+ const candidates=SOURCES.find(b=>b.n===entry.vol)?.chapters.flatMap(c=>c[3])||[];
+ const direct=candidates.find(t=>normSource(t[0])===normSource(entry.section));
+ if(direct)return linkTo(direct[1],entry.vol);
+ const alias=INDEX_ALIASES[entry.vol+'|'+normSource(entry.section)];
+ if(alias)return linkTo(alias,entry.vol);
+ return linkTo(entry.section,entry.vol);
+}
 function originalIndexPanel(){
  const all=window.rtOriginalIndex||[];
  const volumes=selectedVol?[selectedVol]:[1,2,3,4,5];
- return '<section class="rt-source-panel"><div class="rt-source-overline">ESTRUCTURA DEL DOCUMENTO ORIGINAL</div><h2>Índice de los capítulos y apartados de Zeland</h2><p class="muted">134 subsecciones localizadas en el PDF de 585 páginas. Las cifras son páginas físicas del archivo, no numeración impresa. Un localizador sirve para estudiar, pero no certifica el contenido de los ejercicios de la Academia.</p>'+
+ return '<section class="rt-source-panel"><div class="rt-source-overline">ESTRUCTURA DEL DOCUMENTO ORIGINAL</div><h2>Índice de los capítulos y apartados de Zeland</h2><p class="muted">134 subsecciones localizadas en el PDF de 585 páginas. Las cifras son páginas físicas del archivo, no numeración impresa. Cada entrada enlaza a una lección relacionada del mismo tomo. La relación es editorial: varias subsecciones comparten una práctica y no implica equivalencia literal con el procedimiento original.</p>'+
  volumes.map(n=>{const entries=all.filter(x=>x.vol===n),chapters=[...new Set(entries.map(x=>x.chapter))];return '<details class="rt-source-chapter"><summary><strong>Volumen '+n+'</strong><span>'+entries.length+' subsecciones del PDF</span></summary>'+
- chapters.map(ch=>'<div class="rt-source-original-chapter"><h3>'+escSource(ch)+'</h3><div class="rt-source-topics">'+entries.filter(x=>x.chapter===ch).map(x=>'<div class="rt-source-topic"><span>'+escSource(x.section)+'</span><small>PDF pp. '+escSource(x.pages)+'</small></div>').join('')+'</div></div>').join('')+'</details>'}).join('')+
+ chapters.map(ch=>'<div class="rt-source-original-chapter"><h3>'+escSource(ch)+'</h3><div class="rt-source-topics">'+entries.filter(x=>x.chapter===ch).map(x=>'<div class="rt-source-topic"><div><span>'+escSource(x.section)+'</span><small style="display:block;margin-top:5px">PDF pp. '+escSource(x.pages)+'</small></div>'+indexLink(x)+'</div>').join('')+'</div></div>').join('')+'</details>'}).join('')+
  '</section>';
 }
 function corePanel(){return '<section class="rt-source-panel"><div class="rt-source-overline">SECUENCIA PRÁCTICA DEL VOLUMEN V</div><h2>Diez herramientas de visualización</h2><p class="muted">El PDF enumera estas herramientas en el resumen de la página 576 y las desarrolla en las páginas anteriores. Cada enlace abre la guía de la Academia correspondiente; sus instrucciones son adaptaciones explicadas con palabras propias.</p><div class="rt-source-core">'+CORE.map((c,i)=>'<div class="rt-source-coreitem"><span class="rt-source-number">'+(i+1)+'</span><div><strong>'+escSource(c[0])+'</strong><small>Referencia orientativa PDF: p. '+c[1]+'</small></div>'+linkTo(c[2],0)+'</div>').join('')+'</div><p class="rt-source-note">Zeland recomienda para la diapositiva del objetivo una dedicación regular que, cuando se practica intensivamente, puede llegar al menos a media hora diaria. La app propone alternativas más breves y voluntarias como adaptación: no son la misma pauta.</p></section>'}
