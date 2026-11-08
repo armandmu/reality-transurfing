@@ -55,7 +55,7 @@ function decorate(){
  }
 }
 window.rtSourceDecorate=decorate;
-window.rtSourceAuditOpen=function(){selectedVol=0;view='rtSource';render();window.scrollTo({top:0,behavior:'smooth'})};
+window.rtSourceAuditOpen=function(){selectedVol=0;view='rtSource';render();window.scrollTo({top:0,behavior:(window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches?'auto':'smooth')})};
 window.rtSourceSetVolume=function(n){selectedVol=Number(n)||0;show()};
 const oldRender=render;
 render=function(){if(view==='rtSource'){show();return}oldRender();decorate()};
