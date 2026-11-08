@@ -19,7 +19,7 @@ function matches(p,title){
 }
 const PROTOCOL_ALIASES={
  'paso de intención':['Paso de la intención'],
- 'freiling':['Freile','Intención de las relaciones'],
+ 'freiling':['Intención de las relaciones'],
  'diapositiva del objetivo':['Visualización del objetivo','Diapositivas positivas'],
  'flujo de energía':['Incrementar tu energía','Energía libre e intención'],
  'marco':['Frame','Marco de intención'],
@@ -60,6 +60,19 @@ const AUTHOR_TECHNIQUES=new Set(['transacción','capa protectora','incrementar t
 function kindOf(item){return AUTHOR_TECHNIQUES.has(norm(item.title))?'Técnica descrita en el libro · guía adaptada':'Ejercicio didáctico de la Academia'}
 function protocol(item){
  const title=norm(item.title);
+ // Freile describe la singularidad personal; Freiling trabaja las relaciones.
+ if(item.vol===2&&title==='freile')return {
+  key:'Freile',type:'Ejercicio didáctico de la Academia',page:item.page||null,
+  steps:['Lee la descripción del freile como cualidad singular del alma dentro del modelo de Zeland.','Escribe tus intereses y preferencias personales sin compararte con otros.','Separa tus decisiones propias de aquellas motivadas por expectativas externas.','Elige una acción pequeña coherente con esas preferencias y registra lo observado.'],
+  example:'Al elegir un proyecto, valoras cuál encaja mejor con tus intereses y circunstancias, en vez de buscar únicamente aprobación externa.',
+  caution:'Adaptación didáctica. La explicación energética del freile pertenece al modelo metafísico de Zeland.'
+ };
+ if(item.vol===5&&title==='diapositiva y proceso')return {
+  key:'Diapositiva y proceso',type:'Técnica descrita en el libro · guía adaptada',
+  steps:['Representa brevemente la meta que quieres alcanzar: la diapositiva del objetivo.','Identifica un paso próximo y verificable del camino hacia esa meta.','Visualiza cómo realizas ese paso concreto del proceso, atendiendo a tus acciones.','Realiza un paso posible y registra el resultado observado y lo que ajustarás.'],
+  example:'Para terminar un proyecto imaginas el resultado deseado, visualizas cómo preparas la tarea de hoy y luego empiezas con una acción concreta.',
+  caution:'Adaptación de la distinción entre visualizar la meta y visualizar el proceso; no garantiza resultados externos.'
+ };
  let p=P.find(p=>norm(p.key)===title);
  if(!p)p=P.filter(p=>norm(p.key).length>=8&&title.includes(norm(p.key))).sort((a,b)=>b.key.length-a.key.length)[0];
  if(!p)p=P.find(p=>(PROTOCOL_ALIASES[p.key]||[]).some(t=>norm(t)===title));
@@ -123,7 +136,7 @@ function recordPanel(id){
  const rows=entryList(id),latest=rows.slice(0,2),count=rows.length;
  return '<section class="rt-panel rt-record"><div class="rt-tag">REPETICIÓN Y COMPARACIÓN</div><h3>'+count+' '+(count===1?'sesión registrada':'sesiones registradas')+'</h3>'+
  (count?' <p class="rt-note">Tus sesiones quedan guardadas en este navegador y también se reflejan en el diario general.</p>':'<p class="rt-note">Cuando completes tu primer ensayo aparecerá aquí. Puedes repetir cualquier técnica sin perder la anterior.</p>')+
- (latest.length?'<div class="rt-compare">'+latest.map((r,i)=>'<div class="rt-compareitem"><small>'+(i===0?'Última sesión':'Sesión anterior')+' · '+esc(r.date)+'</small><p><b>Situación</b> '+esc(r.situation||'—')+'</p><p><b>Observación</b> '+esc(r.observation||'—')+'</p><p><b>Acción</b> '+esc(r.action||'—')+'</p><p><b>Revisión</b> '+esc(r.review||'Pendiente de revisión')+'</p><label class="rt-review-label" for="rt-review-'+r.timestamp+'">Actualizar la revisión</label><textarea id="rt-review-'+r.timestamp+'" rows="2" placeholder="¿Qué ocurrió después?">'+esc(r.review||'')+'</textarea><button class="btn" onclick="rtUpdateReview('+r.timestamp+')">Guardar revisión</button></div>').join('')+'</div>':'')+
+ (latest.length?'<div class="rt-compare">'+latest.map((r,i)=>'<div class="rt-compareitem"><small>'+(i===0?'Última sesión':'Sesión anterior')+' · '+esc(r.date)+'</small><p><b>Situación</b> '+esc(r.situation||'—')+'</p><p><b>Observación</b> '+esc(r.observation||'—')+'</p><p><b>Acción</b> '+esc(r.action||'—')+'</p><p><b>Revisión</b> '+esc(r.review||'Pendiente de revisión')+'</p><label class="rt-review-label" for="rt-review-'+Number(r.timestamp)+'">Actualizar la revisión</label><textarea id="rt-review-'+r.timestamp+'" rows="2" placeholder="¿Qué ocurrió después?">'+esc(r.review||'')+'</textarea><button class="btn" onclick="rtUpdateReview('+Number(r.timestamp)+')">Guardar revisión</button></div>').join('')+'</div>':'')+
  (count>2?'<details class="rt-old"><summary>Ver todas las sesiones ('+count+')</summary>'+rows.slice(2).map(r=>'<div class="rt-oldentry"><small>'+esc(r.date)+'</small><p>'+esc(r.situation||r.observation||r.action||'Registro')+'</p></div>').join('')+'</details>':'')+'</section>';
 }
 function related(item){
