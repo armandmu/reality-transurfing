@@ -27,28 +27,7 @@ function chapters(){
  return books.map(b=>'<section class="rt-source-book"><h2>Volumen '+b.n+' · '+escSource(b.title)+'</h2>'+
  b.chapters.map(c=>'<details class="rt-source-chapter"><summary><strong>'+escSource(c[0])+'</strong><span>PDF pp. '+c[1]+'–'+c[2]+' · '+c[3].length+' referencias</span></summary><div class="rt-source-topics">'+c[3].map(t=>'<div class="rt-source-topic"><span>'+escSource(t[0])+'</span>'+linkTo(t[1],b.n)+'</div>').join('')+'</div></details>').join('')+'</section>').join('');
 }
-const INDEX_ALIASES={
- '1|soluciones simples para problemas complicados':'Retirada suave',
- '1|el estado suspendido':'Mi péndulo elegido',
- '1|la trasmision':'Transmitir un buen estado',
- '1|rituales magicos':'Ritual de inicio consciente',
- '1|potencial excesivo':'Detector de importancia',
- '1|descontento y juicio':'Aceptar y soltar',
- '1|sentirse culpable':'Culpa o responsabilidad',
- '1|el cambio de generaciones':'Historia o pronóstico',
- '1|desastre':'Ante noticias alarmantes',
- '2|espejismo':'Espejismos',
- '4|la ley de la mala suerte':'El juego de las sombras',
- '4|todo sucede en tu contra':'Polarización y opuestos',
- '4|estabilizando la estructura':'Ruptura del guion colectivo',
- '4|los dos aspectos de la realidad':'El mundo como escena',
- '4|sonar despierto':'Despertar en el juego',
- '4|hijos de dios':'Intención consciente y libertad',
- '4|el teatro del sueno':'El mundo como escena',
- '5|el mundo se esta moviendo hacia ti':'Quinto principio: orientar la imagen',
- '5|limpiando el mundo':'Limpiar la capa del mundo',
- '5|visitando la eternidad':'Declaración final del hacedor'
-};
+const INDEX_ALIASES={"1|soluciones simples para problemas complicados":"Retirada suave","1|el estado suspendido":"Mi péndulo elegido","1|la trasmision":"Transmitir un buen estado","1|rituales magicos":"Ritual de inicio consciente","1|potencial excesivo":"Detector de importancia","1|descontento y juicio":"Aceptar y soltar","1|sentirse culpable":"Culpa o responsabilidad","1|el cambio de generaciones":"Historia o pronóstico","1|desastre":"Ante noticias alarmantes","2|espejismo":"Espejismos","4|la ley de la mala suerte":"El juego de las sombras","4|todo sucede en tu contra":"Polarización y opuestos","4|estabilizando la estructura":"Ruptura del guion colectivo","4|los dos aspectos de la realidad":"El mundo como escena","4|sonar despierto":"Despertar en el juego","4|hijos de dios":"Intención consciente y libertad","4|el teatro del sueno":"El mundo como escena","5|el mundo se esta moviendo hacia ti":"Quinto principio: orientar la imagen","5|limpiando el mundo":"Limpiar la capa del mundo","5|visitando la eternidad":"Declaración final del hacedor","1|la batalla de los pendulos":"No alimentar la polémica","1|siempre obtienes lo que no quieres":"Del bumerán al foco","1|el fracaso de un pendulo":"Retirada suave","1|extinguir un pendulo":"Romper el guion","1|la antipoda de un pendulo":"Encuentra la ola","1|el deseo de tener y no tener":"Querer sin aferrarte","1|el embudo del pendulo":"Corta el embudo informativo","1|el campo de informacion":"Mapa de posibilidades","1|conocimiento de ninguna parte":"Escucha la intuición sin idealizarla","1|el suplicante el ofendido y el guerrero":"Tres papeles, una elección","1|ir con la corriente":"La vía de menor resistencia","2|cadenas de trasferencia":"Cadenas de transferencia","4|los extranos indigo":"Los niños índigo","5|persiguiendo el reflejo":"El reflejo y sus condiciones","5|corrigiendo el espejo":"Corregir el espejo"};
 function indexLink(entry){
  const candidates=SOURCES.find(b=>b.n===entry.vol)?.chapters.flatMap(c=>c[3])||[];
  const direct=candidates.find(t=>normSource(t[0])===normSource(entry.section));
