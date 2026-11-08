@@ -71,7 +71,7 @@ window.oracleFavorite=function(idx){const c=CARDS[idx];mutate(o=>{if(!o.favorite
 window.oracleSaveCard=function(idx){
  const c=CARDS[idx],sit=document.getElementById('oracle-situation')?.value.trim()||'',ins=document.getElementById('oracle-insight')?.value.trim()||'',act=document.getElementById('oracle-action')?.value.trim()||'';
  if(!sit&&!ins&&!act){document.getElementById('oracle-msg').textContent='Escribe al menos una respuesta.';return}
- const entry={id:'oracle-'+c.id,title:'Oráculo · '+c.title,date:new Date().toLocaleString('es-ES'),text:'Situación: '+(sit||'—')+'\\n\\nReflexión: '+(ins||'—')+'\\n\\nAcción: '+(act||'—')};
+ const entry={id:'oracle-'+c.id,title:'Oráculo · '+c.title,date:new Date().toLocaleString('es-ES'),text:'Situación: '+(sit||'—')+'\n\nReflexión: '+(ins||'—')+'\n\nAcción: '+(act||'—')};
  const drafts={...(state.oracleDrafts||{})};delete drafts['card-'+idx];
  if(oracleCommit({...state,entries:[entry,...state.entries],oracleDrafts:drafts}))document.getElementById('oracle-msg').textContent='Guardado en tu diario.';
 };
@@ -79,7 +79,7 @@ window.oracleSaveConsultation=function(){
  const t=document.getElementById('oracle-summary'),summary=t?.value.trim()||'',names=picked.map(c=>c.title);
  if(!summary){document.getElementById('oracle-msg').textContent='Escribe una reflexión o decisión antes de guardarla.';return}
  const date=new Date().toISOString();
- const entry={id:'oracle-consultation',title:'Consulta · '+names.join(', '),date:new Date().toLocaleString('es-ES'),text:'Pregunta: '+(prompt||'Consulta abierta')+'\\n\\nCartas: '+names.join(' · ')+'\\n\\nReflexión: '+summary};
+ const entry={id:'oracle-consultation',title:'Consulta · '+names.join(', '),date:new Date().toLocaleString('es-ES'),text:'Pregunta: '+(prompt||'Consulta abierta')+'\n\nCartas: '+names.join(' · ')+'\n\nReflexión: '+summary};
  const drafts={...(state.oracleDrafts||{})};delete drafts.summary;
  const o={...fetchState(),consultations:[{date,question:prompt,cards:picked.map(c=>c.id),summary},...fetchState().consultations]};
  if(oracleCommit({...state,entries:[entry,...state.entries],oracle:o,oracleDrafts:drafts}))document.getElementById('oracle-msg').textContent='Consulta guardada en tu diario.';
