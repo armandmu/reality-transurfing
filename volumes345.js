@@ -62,7 +62,7 @@ function volRender(){
  main.innerHTML=(page==='lesson'?lessonView(b,activeChapter,activeLesson):page==='chapter'?chapterHome(b,activeChapter):volHome(b))+nav3()+
  '<footer class="note">Cuaderno de estudio independiente · Reality Transurfing, volumen '+activeBook+'. Explicaciones y actividades redactadas de forma original a partir de los temas del libro. Las afirmaciones metafísicas son propuestas de Vadim Zeland, no hechos científicamente demostrados.</footer>';
 }
-window.openVol=function(n,p='home',c=0,l=0){activeBook=Number(n);page=p;activeChapter=c;activeLesson=l;view='academyExtra';volRender();window.scrollTo({top:0,behavior:'smooth'})};
+window.openVol=function(n,p='home',c=0,l=0){activeBook=Number(n);page=p;activeChapter=c;activeLesson=l;view='academyExtra';volRender();window.scrollTo({top:0,behavior:(window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches?'auto':'smooth')})};
 window.toggleVolDone=function(){
  const key=itemId(activeBook,activeChapter,activeLesson),a=completed();
  state.extraCompleted=a.includes(key)?a.filter(x=>x!==key):[...a,key];persist();volRender()
