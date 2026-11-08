@@ -12,7 +12,7 @@ const server=createServer((req,res)=>{
  const ext=extname(dest);res.writeHead(200,{'content-type':ext==='.js'?'text/javascript':ext==='.webp'?'image/webp':'text/plain'});res.end(readFileSync(dest))
 });
 await new Promise(ok=>server.listen(0,'127.0.0.1',ok));
-const exe=['/usr/bin/google-chrome','/usr/bin/chromium','/usr/bin/chromium-browser'].find(existsSync);
+const exe=[process.env.CHROME_PATH,'C:/Program Files/Google/Chrome/Application/chrome.exe','C:/Program Files (x86)/Google/Chrome/Application/chrome.exe','/usr/bin/google-chrome','/usr/bin/chromium','/usr/bin/chromium-browser'].filter(Boolean).find(existsSync);
 if(!exe){server.close();throw Error('Chrome not found')}
 const chrome=spawn(exe,['--headless','--no-sandbox','--disable-dev-shm-usage','--disable-gpu','--disable-background-networking','--virtual-time-budget=7000','--dump-dom','http://127.0.0.1:'+server.address().port+'/'],{stdio:['ignore','pipe','pipe']});
 let out='',err='';chrome.stdout.on('data',b=>out+=b.toString());chrome.stderr.on('data',b=>err+=b.toString().slice(0,500));
