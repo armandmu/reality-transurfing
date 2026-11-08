@@ -180,7 +180,7 @@ function detail(id){
  '<div id="rt-step-progress">'+progressBar(0,p.steps.length)+'</div><div class="rt-warning"><b>Qué evitar</b><p>'+esc(p.caution)+'</p></div></section>'+
  '<section class="rt-panel"><div class="rt-tag">DIARIO Y SEGUIMIENTO</div><h2>Tu sesión de hoy</h2><p class="rt-note">Puedes repetir esta práctica tantas veces como necesites y comparar lo que anotas en días distintos.</p>'+
  [['situation','¿Qué situación concreta has elegido?'],['observation','¿Qué has observado al practicar?'],['action','¿Qué acción realizarás en las próximas 24 horas?'],['review','¿Qué resultado has podido comprobar? (opcional)']].map(x=>'<div class="rt-field"><label for="rt-'+x[0]+'">'+x[1]+'</label><textarea id="rt-'+x[0]+'" rows="3" oninput="rtDraftChanged()"></textarea></div>').join('')+
- '<p id="rt-msg" class="rt-note"></p><div class="stack"><button class="btn primary" onclick="rtSave()">Guardar esta sesión</button><button class="btn" id="rt-complete-btn" aria-pressed="'+String(isComplete(item))+'" onclick="rtToggleComplete()">'+(isComplete(item)?'✓ Completada · Desmarcar':'Marcar como completada ✓')+'</button><button class="btn" onclick="rtClearSteps()">Reiniciar pasos</button></div></section>'+
+ '<p id="rt-msg" class="rt-note" role="status" aria-live="polite"></p><div class="stack"><button class="btn primary" onclick="rtSave()">Guardar esta sesión</button>'+(item.vol===1?'<button class="btn" id="rt-fav-btn" aria-pressed="'+String(state.fav.includes(item.id.slice(3)))+'" onclick="rtToggleFav()">'+(state.fav.includes(item.id.slice(3))?'★ Favorita · Quitar':'☆ Guardar favorita')+'</button>':'')+'<button class="btn" id="rt-complete-btn" aria-pressed="'+String(isComplete(item))+'" onclick="rtToggleComplete()">'+(isComplete(item)?'✓ Completada · Desmarcar':'Marcar como completada ✓')+'</button><button class="btn" onclick="rtClearSteps()">Reiniciar pasos</button></div></section>'+
  '<div id="rt-history">'+recordPanel(item.id)+'</div>'+
  related(item);
  const explanation=first.nextElementSibling;
@@ -190,6 +190,15 @@ function detail(id){
  const rootTabs=root.querySelector('nav.tabs');if(rootTabs)addIndexButton(rootTabs);
  if(done){const msg=document.getElementById('rt-msg');if(msg)msg.textContent='Ya tienes '+done+' sesiones de esta práctica. Puedes registrar otra sin borrar las anteriores.'}
 }
+window.rtToggleFav=function(){
+ const item=items().find(i=>i.id===current);
+ if(!item||item.vol!==1)return;
+ const id=item.id.slice(3),next=state.fav.includes(id);
+ state.fav=next?state.fav.filter(x=>x!==id):[...state.fav,id];
+ persist();
+ const b=document.getElementById('rt-fav-btn');
+ if(b){b.textContent=next?'☆ Guardar favorita':'★ Favorita · Quitar';b.setAttribute('aria-pressed',String(!next))}
+};
 window.rtStepChanged=function(){
  const inputs=[...document.querySelectorAll('[data-rt-step]')],n=inputs.filter(x=>x.checked).length,place=document.getElementById('rt-step-progress');
  if(place)place.innerHTML=progressBar(n,inputs.length);
