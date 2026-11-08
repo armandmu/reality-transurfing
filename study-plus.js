@@ -168,16 +168,17 @@ function isComplete(item){
  return Array.isArray(state.extraCompleted)&&state.extraCompleted.includes(item.id);
 }
 function setComplete(item,completed){
- if(!item)return;
+ if(!item)return false;
  const prop=item.vol===1?'done':item.vol===2?'v2Done':'extraCompleted';
  const id=item.vol===1?item.id.replace(/^v1-/,''):item.vol===2?item.id.replace(/^v2-/,''):item.id;
- let current=Array.isArray(state[prop])?state[prop]:[];
- state[prop]=completed?[...new Set([...current,id])]:current.filter(x=>x!==id);
- persist();
+ const current=Array.isArray(state[prop])?state[prop]:[];
+ const candidate={...state,[prop]:completed?[...new Set([...current,id])]:current.filter(x=>x!==id)};
+ try{localStorage.setItem('transurfing-v1',JSON.stringify(candidate));state=candidate;return true}
+ catch(e){return false}
 }
 window.rtToggleComplete=function(){
  const item=items().find(i=>i.id===current);if(!item)return;
- const next=!isComplete(item);setComplete(item,next);
+ const next=!isComplete(item);if(!setComplete(item,next)){const msg=document.getElementById('rt-msg');if(msg)msg.textContent='No se ha podido actualizar el progreso. Comprueba el almacenamiento.';return}
  const b=document.getElementById('rt-complete-btn');if(b){b.textContent=next?'✓ Completada · Desmarcar':'Marcar como completada ✓';b.setAttribute('aria-pressed',String(next))}
  const msg=document.getElementById('rt-msg');if(msg)msg.textContent=next?'Práctica marcada como completada. El progreso de tu volumen ya está actualizado.':'Se ha desmarcado la práctica sin borrar tus sesiones.';
 };
@@ -288,7 +289,7 @@ window.rtSave=function(){
  if(!store(entry)){document.getElementById('rt-msg').textContent='No se ha podido guardar: almacenamiento lleno o bloqueado. Tus respuestas siguen en pantalla; exporta una copia y libera espacio antes de continuar.';return}
  const checked=[...document.querySelectorAll('[data-rt-step]')];
  if(checked.length&&checked.every(x=>x.checked)){
-   setComplete(item,true);
+   if(!setComplete(item,true)){const msg=document.getElementById('rt-msg');if(msg)msg.textContent='Sesión guardada, pero el progreso no se pudo actualizar.';return}
    const button=document.getElementById('rt-complete-btn');if(button){button.textContent='✓ Completada · Desmarcar';button.setAttribute('aria-pressed','true')}
  }
  // Historial y entrada del diario se guardaron juntos en store(entry).
