@@ -58,7 +58,7 @@ class FileReader{readAsText(file){this.result=file.text;this.onload?.()}}
 const window={scrollTo(){}};
 const sandbox=vm.createContext({document,window,localStorage,FileReader,clearInterval(){},setInterval(){return 1},setTimeout(){},alert(){},Date,Blob:class{},console});
 for(const src of [inline,...files.slice(1).map(f=>data[f])])vm.runInContext(src,sandbox);
-const appState=vm.runInContext('state',sandbox);
+const getState=()=>vm.runInContext('state',sandbox);
 const visit=(label,fn)=>{fn();assert(rendered.length>300,'Empty screen: '+label)};
 visit('Home',()=>sandbox.app('inicio'));
 visit('Source index',()=>window.rtSourceAuditOpen());
@@ -81,13 +81,13 @@ for(const [label,go] of [
  for(const f of ['situation','observation','action','review'])document.getElementById('rt-'+f).value=f==='situation'?'Ejemplo de práctica':f;
  window.rtSave();
 }
-assert.equal(appState.rtHistory.length,5);
-assert.equal(appState.entries.length,5);
-assert.equal(appState.done.length,1);
-assert.equal(appState.v2Done.length,1);
-assert.equal(appState.extraCompleted.length,3);
+assert.equal(getState().rtHistory.length,5);
+assert.equal(getState().entries.length,5);
+assert.equal(getState().done.length,1);
+assert.equal(getState().v2Done.length,1);
+assert.equal(getState().extraCompleted.length,3);
 assert(localStorage.getItem('transurfing-v1')?.includes('"rtHistory"'),'History not included in backup');
-const recent=appState.rtHistory[0];
+const recent=getState().rtHistory[0];
 document.getElementById('rt-review-'+recent.timestamp).value='Revisión posterior';
 window.rtUpdateReview(recent.timestamp);
 assert.equal(vm.runInContext('state.rtHistory[0].review',sandbox),'Revisión posterior');
