@@ -53,10 +53,10 @@ const EXAMPLE_CONTEXT={
  'el telón':'Estás buscando demasiadas explicaciones para justificar una elección legítima.'
 };
 function contextualExample(item,topic){
- const context=EXAMPLE_CONTEXT[norm(item.section)]||'Tienes una situación cotidiana pendiente de resolver.';
- return context+' En vez de actuar inmediatamente, escribes los hechos y realizas este paso: '+topic+' Al terminar, registras qué has hecho y qué has observado, sin exigir que otras personas o circunstancias respondan como deseas.';
+ const context=Object.entries(EXAMPLE_CONTEXT).find(([k])=>norm(k)===norm(item.section))?.[1]||'Tienes una decisión pendiente de resolver y dispones de varias opciones reales.';
+ return context+' Identificas una reacción habitual, eliges una opción concreta que depende de ti y la pruebas sin forzar la respuesta de los demás. Al día siguiente compruebas qué hiciste de verdad, cómo te sentiste y qué parte de tu interpretación necesitas revisar.';
 }
-const AUTHOR_TECHNIQUES=new Set(['transacción','capa protectora','incrementar tu energía','visualización del objetivo','visualización del proceso','diapositivas positivas','cadenas de transferencia','marco de intención','frame','onda explosiva','esfera externa','reducción de decorados','amalgama del objetivo','fijación de la intención','integración de las técnicas','coordinación de la intención','diapositivas acústicas','diapositiva y proceso','sintonizar con el freile','despertar en el sueño'].map(norm));
+const AUTHOR_TECHNIQUES=new Set(['transacción','capa protectora','incrementar tu energía','visualización del objetivo','visualización del proceso','diapositivas positivas','cadenas de transferencia','marco de intención','frame','onda explosiva','esfera externa','reducción de decorados','amalgama del objetivo','fijación de la intención','integración de las técnicas','coordinación de la intención','diapositivas acústicas','diapositiva y proceso','sintonizar con el freile','despertar en el sueño','visualización benéfica','alquílate'].map(norm));
 function kindOf(item){return AUTHOR_TECHNIQUES.has(norm(item.title))?'Técnica descrita en el libro · guía adaptada':'Ejercicio didáctico de la Academia'}
 function protocol(item){
  const title=norm(item.title);
@@ -86,6 +86,18 @@ function protocol(item){
    'Elige una acción razonable y una expectativa rígida que puedas soltar; observa alternativas sin precipitarte a rechazarlas.',
    'Revisa lo observado sin confundir flexibilidad con pasividad ante problemas reales.'
   ],example:'Te cambian la fecha de una reunión: dejas de exigir que sea exactamente el martes, buscas otro hueco y preparas el contenido.',caution:'En la lectura del autor soltar el agarre se vincula a la corriente de variantes; aquí se usa como práctica adaptada de flexibilidad.'}
+ };
+ if(item.vol===1&&title==='encuentra la ola')return {
+  key:item.title,type:'Ejercicio didáctico sobre la ola de suerte',
+  page:48,steps:['Lee cómo Zeland entiende la ola de éxito (PDF 48–56), como una secuencia favorable dentro de su hipótesis metafísica, no simplemente como una metáfora suya.','Describe una circunstancia favorable reciente sin atribuirle causas invisibles.','Elige una acción inmediata y prudente para aprovecharla.','Registra qué resultado observable obtuvo esa acción y qué habría ocurrido si no actuabas.'],
+  example:'Una persona te propone participar en un proyecto que te interesa. Agradeces la oportunidad, pides información y valoras si encaja en tu disponibilidad.',
+  caution:'Aprovechar oportunidades es una adaptación práctica; no demuestra acumulación material de líneas de vida.'
+ };
+ if(item.vol===1&&title==='registrar señales favorables')return {
+  key:item.title,type:'Seguimiento didáctico de la ola de suerte',
+  page:48,steps:['Durante siete días registra una circunstancia concreta que haya sido favorable o haya facilitado una acción.','Anota también situaciones neutras o desfavorables para evitar seleccionar solo hechos positivos.','Separa oportunidad, decisión propia y resultado posterior.','Al final de la semana revisa patrones sin atribuir coincidencias a una fuerza causal no demostrada.'],
+  example:'Durante una semana apuntas dos contactos útiles y un obstáculo laboral. Compruebas si respondiste a los contactos y cómo gestionaste el obstáculo.',
+  caution:'Seguimiento longitudinal adaptado; no es una segunda técnica original distinta de la ola de éxito.'
  };
  const special=SPECIAL[item.vol+':'+title];
  if(special)return {...special,key:item.title,type:'Técnica o concepto de Zeland · guía adaptada'};
