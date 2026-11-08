@@ -96,4 +96,4 @@ document.getElementById('rt-situation').value='Borrador de prueba';
 window.rtDraftChanged();
 assert.equal(appState.rtDrafts[draftKey].situation,'Borrador de prueba');
 assert(localStorage.getItem('transurfing-v1')?.includes('Borrador de prueba'));
-console.log('PASS: all 167 activities, 78 oracle cards, 136 source references, five progress systems, diary, review and draft persistence');
+console.log('PASS: all 167 activities, 78 oracle cards, 138 source references, five progress systems, diary, review and draft persistence');
