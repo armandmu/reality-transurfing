@@ -284,7 +284,7 @@ function addIndexButton(nav){
  const b=document.createElement('button');b.className='tab rt-index-tab';b.textContent='Mapa de técnicas';b.onclick=()=>rtIndexOpen();
  nav.appendChild(b);
 }
-window.rtIndexOpen=function(){view='rtInventory';inventoryTerm='';inventoryVolume='all';inventoryType='all';render();window.scrollTo({top:0,behavior:'smooth'})};
+window.rtIndexOpen=function(){view='rtInventory';inventoryTerm='';inventoryVolume='all';inventoryType='all';render();window.scrollTo({top:0,behavior:(window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches?'auto':'smooth')})};
 window.rtIndexFilter=function(q,v,t){const focused=document.activeElement?.id;inventoryTerm=q||'';inventoryVolume=v||'all';inventoryType=t||'all';const cursor=document.getElementById('rt-q')?.selectionStart??(q||'').length;inventory();const target=document.getElementById(focused==='rt-v'||focused==='rt-t'?focused:'rt-q');if(target){target.focus();if(target.id==='rt-q')target.setSelectionRange(cursor,cursor)}};
 function inventory(){
  const root=document.getElementById('root'),all=items(),shown=all.filter(x=>(inventoryVolume==='all'||x.vol===Number(inventoryVolume))&&(inventoryType==='all'||(inventoryType==='original')===kindOf(x).startsWith('Técnica'))&&norm(x.title+' '+x.section+' '+x.explanation).includes(norm(inventoryTerm)));
