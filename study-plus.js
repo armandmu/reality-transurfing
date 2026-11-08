@@ -99,7 +99,7 @@ function saveDraft(){
  if(!current)return;
  const data={steps:[...document.querySelectorAll('[data-rt-step]')].map(x=>!!x.checked),date:Date.now()};
  for(const k of ['situation','observation','action','review'])data[k]=document.getElementById('rt-'+k)?.value||'';
- state.rtDrafts={...(state.rtDrafts||{}),[current]:data};persist();
+ state.rtDrafts={...(state.rtDrafts||{}),[current]:data};try{persist()}catch(e){const msg=document.getElementById('rt-msg');if(msg)msg.textContent='No se ha podido guardar el borrador en este navegador. Conserva el texto y exporta una copia antes de cerrar la página.';}
 }
 window.rtDraftChanged=function(){saveDraft()};
 function restoreDraft(id){
