@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
 const files=['index.html','oracle.js','volume2.js','volumes345.js','study-plus.js','source-guide.js'];
-const data=Object.fromEntries(files.map(f=>[f,fs.readFileSync(f,'utf8')]));
+const data=Object.fromEntries(files.map(f=>[f,fs.readFileSync(f,'utf8').replace(/\r\n/g,'\n')]));
 const inline=data['index.html'].match(/<script>([\s\S]*?)<\/script>/)?.[1];
 assert(inline,'Missing inline app');
 for(const f of files.slice(1))new vm.Script(data[f],{filename:f});
