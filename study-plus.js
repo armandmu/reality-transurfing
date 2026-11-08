@@ -80,7 +80,7 @@ function protocol(item){
    'En un estado tranquilo, nunca mientras conduces, observa si aparece espontáneamente un instante de mente relajada e introduce suavemente esa sensación, sin forzarte a adormecer.',
    'Registra lo vivido y vuelve a una acción real; no atribuyas al ensayo efectos sobre la realidad material.'
   ],example:'Antes de dormir te viene un momento de tranquilidad, recuerdas la sensación de presentar tu proyecto con satisfacción y al día siguiente preparas una diapositiva de verdad.',caution:'El texto distingue sueños, vigilia e intención exterior; esta Academia no valida sus afirmaciones metafísicas.'},
-  '5:sexto principio mantener la imagen':{page:540,steps:[
+  '5:sexto principio soltar el agarre':{page:540,steps:[
    'El sexto principio del espejo (PDF 540) pide soltar el agarre y permitir que los acontecimientos sigan la corriente de las variantes, sin aferrarse al control del guion.',
    'Identifica una situación en que intentas controlar cada detalle y anota qué resultado deseas y qué elementos no dependen de ti.',
    'Elige una acción razonable y una expectativa rígida que puedas soltar; observa alternativas sin precipitarte a rechazarlas.',
