@@ -31,7 +31,7 @@ let state;try{
  }
 }catch(e){state=normalizeState(null)}
 function persist(){localStorage.setItem(storeKey,JSON.stringify(state))}function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function app(v,id){if(id!==undefined)selected=id;view=v;filter='';render();window.scrollTo({top:0,behavior:'smooth'})}
+function app(v,id){if(id!==undefined)selected=id;view=v;filter='';render();window.scrollTo({top:0,behavior:(window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches?'auto':'smooth')})}
 function setFilter(v){filter=v;renderCards()}
 function done(id){if(!state.done.includes(id))state.done.push(id);else state.done=state.done.filter(x=>x!==id);persist();render()}
 function fav(id){if(!state.fav.includes(id))state.fav.push(id);else state.fav=state.fav.filter(x=>x!==id);persist();render()}
